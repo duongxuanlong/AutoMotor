@@ -1,0 +1,9 @@
+Main Board Components:
+
+* 1 Arduino Uno 
+* 1 L298N dual motor controller module
+* 3 HC-SR04 sensors
+* 1 subboard
+* 2 IR FC-03
+* 2 encoders with 20 holes
+...
