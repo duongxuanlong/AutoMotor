@@ -32,11 +32,11 @@ void loop()
 //      LOCATE->UpdateDistance();
 //    }
 
-    if (CONTROL->GetCurrentDirection() == FRONT_SIDE)
-	{
-		LOCATE->UpdateDistance();
-		CONTROL->SetDirection(LOCATE->GetDirection());
-	}
+//  if (CONTROL->GetCurrentDirection() == FRONT_SIDE)
+//	{
+//		LOCATE->UpdateDistance();
+//		CONTROL->SetDirection(LOCATE->GetDirection());
+//	}
 	
 	CONTROL->RunningOnDirection();
     //CONTROL->Move(LOCATE->GetDirection());

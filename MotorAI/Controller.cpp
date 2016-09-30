@@ -12,7 +12,7 @@ Controller::~Controller(){ }
 
 void Controller::Init()
 {
-  SPEED->Init(RISING);
+//  SPEED->Init(RISING);
   LOCATE->Init();
   
   pinMode(MOTOR_ENA, OUTPUT);
@@ -29,6 +29,7 @@ void Controller::Init()
   digitalWrite(MOTOR_IN4, LOW);
 
   m_CurrentDirection = FRONT_SIDE;
+  m_TurningBack = false;
   
   m_lSpdRate = MOTOR_MAX_SPD_RATE;
   m_rSpdRate = MOTOR_MAX_SPD_RATE;
@@ -99,46 +100,90 @@ void Controller::HandleTurnDirection(int left, int right)
 	m_rSpdRate = right;
 	
 	float distance = LOCATE->GetRange(FRONT_SIDE);
-	if (distance > LOCATE->GetMaxDistance() - DELTA_DISTANCE && 
-		distance < LOCATE->GetMaxDistance() + DELTA_DISTANCE)
+	if ((distance > LOCATE->GetMaxDistance() - DELTA_DISTANCE && 
+		distance < LOCATE->GetMaxDistance() + DELTA_DISTANCE) || distance == MAX_DISTANCE)
 		m_CurrentDirection = FRONT_SIDE;
+}
+
+void Controller::TurnForward()
+{
+  digitalWrite(MOTOR_IN2, HIGH);
+  digitalWrite(MOTOR_IN1, LOW);
+  digitalWrite(MOTOR_IN4, HIGH);
+  digitalWrite(MOTOR_IN3, LOW);
+}
+
+void Controller::TurnLeft()
+{
+  digitalWrite(MOTOR_IN2, LOW);
+  digitalWrite(MOTOR_IN1, HIGH);
+  digitalWrite(MOTOR_IN4, HIGH);
+  digitalWrite(MOTOR_IN3, LOW);
+}
+
+void Controller::TurnRight()
+{
+  digitalWrite(MOTOR_IN2, HIGH);
+  digitalWrite(MOTOR_IN1, LOW);
+  digitalWrite(MOTOR_IN3, HIGH);
+  digitalWrite(MOTOR_IN4, LOW);
+}
+
+void Controller::TurnBack()
+{
+  digitalWrite(MOTOR_IN2, LOW);
+  digitalWrite(MOTOR_IN1, HIGH);
+  digitalWrite(MOTOR_IN4, LOW);
+  digitalWrite(MOTOR_IN3, HIGH);
 }
 
 void Controller::RunningOnDirection()
 {
-	switch (m_CurrentDirection)
-	{
-		case FRONT_SIDE:
-			digitalWrite(MOTOR_IN2, HIGH);
-			digitalWrite(MOTOR_IN4, HIGH);
-			m_lSpdRate = MOTOR_MAX_SPD_RATE;
-			m_rSpdRate = MOTOR_MAX_SPD_RATE;
-		break;
-		
-		case LEFT_SIDE:
-			digitalWrite(MOTOR_IN1, HIGH);
-			digitalWrite(MOTOR_IN4, HIGH);
-			HandleTurnDirection(0, MOTOR_MAX_SPD_RATE / 3);
-			// m_lSpdRate = 0;
-			// m_rSpdRate = MOTOR_MAX_SPD_RATE / 3;
-			// int new direction 
-		break;
-		
-		case RIGHT_SIDE:
-		    digitalWrite(MOTOR_IN2, HIGH);
-			digitalWrite(MOTOR_IN3, HIGH);
-			HandleTurnDirection(MOTOR_MAX_SPD_RATE / 3, 0);
-		break;
-		
-		default:
-			digitalWrite(MOTOR_IN1, HIGH);
-			digitalWrite(MOTOR_IN3, HIGH);
-			m_lSpdRate = MOTOR_MAX_SPD_RATE / 3;
-			m_rSpdRate = MOTOR_MAX_SPD_RATE / 3;
-		
-	}
-	analogWrite(MOTOR_ENA, m_lSpdRate);
-	analogWrite(MOTOR_ENB, m_rSpdRate);
+  if (!m_TurningBack && LOCATE->GetRange(FRONT_SIDE) > MIN_DISTANCE)
+  {
+    TurnForward();
+  }
+  else
+  {
+//    Stop();
+    TurnBack();
+    unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+    unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+
+    bool leftright = false;
+    unsigned int maxdistance = 0;
+    if (left > right)
+    {
+      leftright = true;
+      maxdistance = left;
+    }
+    else
+    {
+      leftright = false;
+      maxdistance = right;
+    }
+
+    if (maxdistance > MIN_DISTANCE)
+    {
+      m_TurningBack = false;
+      Stop();
+      if (leftright)
+      {
+        TurnLeft();
+      }
+      else
+      {
+        TurnRight();
+      }
+    }
+    else
+    {
+      m_TurningBack = true;
+      TurnBack();
+    }
+  }
+//	analogWrite(MOTOR_ENA, m_lSpdRate);
+//	analogWrite(MOTOR_ENB, m_rSpdRate);
 }
 
 void Controller::Move(int direct)

@@ -29,6 +29,11 @@ class Controller
 	void RunningOnDirection();
   private:
     int m_CurrentDirection;
+    bool m_TurningBack;
+    void TurnForward();
+    void TurnLeft();
+    void TurnRight();
+    void TurnBack();
 	void HandleTurnDirection(int left, int right);
     
   //Singleton

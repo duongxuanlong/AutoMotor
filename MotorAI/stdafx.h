@@ -10,6 +10,10 @@ int DBG(String str, ...);
 //Number of sensors
 #define SENSORS 3
 
+//Define Distances
+#define MAX_DISTANCE 400
+#define MIN_DISTANCE 10
+
 //LED light
 #define LED 13
 

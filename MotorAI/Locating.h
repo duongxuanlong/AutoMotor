@@ -2,6 +2,7 @@
 #define __LOCATING_H__
 
 #include "stdafx.h"
+#include <NewPing.h>
 
 class Locating
 {
@@ -10,20 +11,23 @@ class Locating
     ~Locating();
     
   public:
-    float m_Distances[3];
+    unsigned int m_Distances[3];
     void UpdateDistance();
     int GetDirection();
     
   public:
     void Init();
-    float GetRange(int direct);
-	float GetMaxDistance();
+    unsigned int GetRange(int direct);
+	  unsigned int GetMaxDistance();
     
   //Singleton
   private:
     static Locating* s_instance;
     int m_LastDirection;
-	float m_MaxDistance;
+	  unsigned int m_MaxDistance;
+    NewPing* m_CenterSensor;
+    NewPing* m_LeftSensor;
+    NewPing* m_RightSensor;
     
   public:
     static Locating* GetInstance()
