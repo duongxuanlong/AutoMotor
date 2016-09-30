@@ -12,7 +12,12 @@ int DBG(String str, ...);
 
 //Define Distances
 #define MAX_DISTANCE 400
-#define MIN_DISTANCE 10
+#define MIN_FRONT_DISTANCE 50
+#define LIMITED_SIDES 15
+#define MIN_SIDE_DISTANCE 10
+
+//DefineTime
+#define LIMITED_TIME 10
 
 //LED light
 #define LED 13
@@ -60,3 +65,4 @@ int DBG(String str, ...);
 //#define FRONT_SIDE 8
 //#define BACK_SIDE 2
 #endif //__STDAFX_H__
+

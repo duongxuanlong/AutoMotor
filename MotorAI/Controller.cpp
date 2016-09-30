@@ -3,22 +3,22 @@
 Controller* Controller::s_instance = NULL;
 
 Controller::Controller():
-m_lSpdRate(MOTOR_DEFAULT_SPD_RATE),
-m_rSpdRate(MOTOR_DEFAULT_SPD_RATE),
-m_eBalance(MOTOR_DEFAULT_ERROR_ACCEPTABLE_VALUE)
+  m_lSpdRate(MOTOR_DEFAULT_SPD_RATE),
+  m_rSpdRate(MOTOR_DEFAULT_SPD_RATE),
+  m_eBalance(MOTOR_DEFAULT_ERROR_ACCEPTABLE_VALUE)
 { }
 
-Controller::~Controller(){ }
+Controller::~Controller() { }
 
 void Controller::Init()
 {
-//  SPEED->Init(RISING);
+  //  SPEED->Init(RISING);
   LOCATE->Init();
-  
+
   pinMode(MOTOR_ENA, OUTPUT);
   pinMode(MOTOR_IN1, OUTPUT);
   pinMode(MOTOR_IN2, OUTPUT);
-  
+
   pinMode(MOTOR_ENB, OUTPUT);
   pinMode(MOTOR_IN3, OUTPUT);
   pinMode(MOTOR_IN4, OUTPUT);
@@ -30,7 +30,9 @@ void Controller::Init()
 
   m_CurrentDirection = FRONT_SIDE;
   m_TurningBack = false;
-  
+  m_Turning = false;
+  m_TurningTime = 0;
+
   m_lSpdRate = MOTOR_MAX_SPD_RATE;
   m_rSpdRate = MOTOR_MAX_SPD_RATE;
   analogWrite(MOTOR_ENA, m_lSpdRate);
@@ -44,23 +46,23 @@ void Controller::Balance()
   DBG("%s" , "Balance: ");
   DBG("--->lRPM = %f", lRPM);
   DBG("--->rRPM = %f", rRPM);
-  if(lRPM != 0 || rRPM != 0)
+  if (lRPM != 0 || rRPM != 0)
   {
-    if(lRPM > rRPM)
+    if (lRPM > rRPM)
     {
       m_eBalance = m_eBalance * (1 - m_eBalance);
-      if(m_eBalance < MOTOR_MIN_ERROR_VALUE)
+      if (m_eBalance < MOTOR_MIN_ERROR_VALUE)
         m_eBalance = MOTOR_MIN_ERROR_VALUE;
-      
+
       m_rSpdRate = MOTOR_MAX_SPD_RATE;
       m_lSpdRate = (int)(MOTOR_MAX_SPD_RATE * (rRPM / lRPM) * (1 - m_eBalance));
     }
-    else if(lRPM < rRPM)
+    else if (lRPM < rRPM)
     {
       m_eBalance = m_eBalance * (1 - m_eBalance);
-      if(m_eBalance < MOTOR_MIN_ERROR_VALUE)
+      if (m_eBalance < MOTOR_MIN_ERROR_VALUE)
         m_eBalance = MOTOR_MIN_ERROR_VALUE;
-      
+
       m_lSpdRate = MOTOR_MAX_SPD_RATE;
       m_rSpdRate = (int)(MOTOR_MAX_SPD_RATE * (lRPM / rRPM) * (1 - m_eBalance));
     }
@@ -68,7 +70,7 @@ void Controller::Balance()
     {
       m_eBalance = m_eBalance * (1  + m_eBalance);
     }
-    
+
     analogWrite(MOTOR_ENA, m_lSpdRate);
     analogWrite(MOTOR_ENB, m_rSpdRate);
     DBG("--->m_lSpdRate = %d", m_lSpdRate);
@@ -86,23 +88,23 @@ void Controller::Stop()
 
 int Controller::GetCurrentDirection()
 {
-	return m_CurrentDirection;
+  return m_CurrentDirection;
 }
 
 void Controller::SetDirection(int direction)
 {
-	m_CurrentDirection = direction;
+  m_CurrentDirection = direction;
 }
 
 void Controller::HandleTurnDirection(int left, int right)
 {
-	m_lSpdRate = left;
-	m_rSpdRate = right;
-	
-	float distance = LOCATE->GetRange(FRONT_SIDE);
-	if ((distance > LOCATE->GetMaxDistance() - DELTA_DISTANCE && 
-		distance < LOCATE->GetMaxDistance() + DELTA_DISTANCE) || distance == MAX_DISTANCE)
-		m_CurrentDirection = FRONT_SIDE;
+  m_lSpdRate = left;
+  m_rSpdRate = right;
+
+  float distance = LOCATE->GetRange(FRONT_SIDE);
+  if ((distance > LOCATE->GetMaxDistance() - DELTA_DISTANCE &&
+       distance < LOCATE->GetMaxDistance() + DELTA_DISTANCE) || distance == MAX_DISTANCE)
+    m_CurrentDirection = FRONT_SIDE;
 }
 
 void Controller::TurnForward()
@@ -137,84 +139,236 @@ void Controller::TurnBack()
   digitalWrite(MOTOR_IN3, HIGH);
 }
 
+void Controller::SetTurning()
+{
+  //  m_Turning = true;
+  //  m_TurningTime = millis();
+}
+
+void Controller::RunSpeed(float leftwheel, float rightwheel)
+{
+  analogWrite(MOTOR_ENA, leftwheel);
+  analogWrite(MOTOR_ENB, rightwheel);
+}
+
 void Controller::RunningOnDirection()
 {
-  if (!m_TurningBack && LOCATE->GetRange(FRONT_SIDE) > MIN_DISTANCE)
+  unsigned int front = LOCATE->GetRange(FRONT_SIDE);
+  //  if (front >= MAX_DISTANCE)
+  //  {
+  //    TurnForward();
+  //    return;
+  //  }
+
+//  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+//  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+
+  if (front > MIN_FRONT_DISTANCE)
   {
+    //    m_lSpdRate = MOTOR_MAX_SPD_RATE;
+    //    m_rSpdRate = MOTOR_MAX_SPD_RATE;
+    //    RunSpeed(m_lSpdRate, m_rSpdRate);
     TurnForward();
+//    if (left <= MIN_SIDE_DISTANCE)
+//    {
+//      //TurnBack();
+//      TurnRight();
+//      return;
+//    }
+//    if (right <= MIN_SIDE_DISTANCE)
+//    {
+//      //TurnBack();
+//      TurnLeft();
+//      return;
+//    }
+
   }
   else
   {
-//    Stop();
-    TurnBack();
     unsigned int left = LOCATE->GetRange(LEFT_SIDE);
     unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+    if (front <= LIMITED_SIDES && left <= LIMITED_SIDES && right <= LIMITED_SIDES)
+    {
+      //      m_lSpdRate = MOTOR_MAX_SPD_RATE / 2;
+      //      m_rSpdRate = MOTOR_MAX_SPD_RATE / 2;
+      //      RunSpeed(m_lSpdRate, m_rSpdRate);
+      TurnBack();
 
-    bool leftright = false;
-    unsigned int maxdistance = 0;
+      return;
+    }
+
+    //    if (front > left || front > right)
+    //    {
+    //      m_lSpdRate = MOTOR_MAX_SPD_RATE;
+    //      m_rSpdRate = MOTOR_MAX_SPD_RATE;
+    //      RunSpeed(m_lSpdRate, m_rSpdRate);
+    //      TurnForward();
+    //
+    //      return;
+    //    }
+
+    //    m_lSpdRate = MOTOR_MAX_SPD_RATE / 2;
+    //    m_rSpdRate = MOTOR_MAX_SPD_RATE / 2;
+    //    RunSpeed(m_lSpdRate, m_rSpdRate);
+    TurnBack();
     if (left > right)
     {
-      leftright = true;
-      maxdistance = left;
-    }
-    else
-    {
-      leftright = false;
-      maxdistance = right;
-    }
-
-    if (maxdistance > MIN_DISTANCE)
-    {
-      m_TurningBack = false;
-      Stop();
-      if (leftright)
-      {
+      //      TurnBack();
+      unsigned int current_time = millis();
+      while (millis() - current_time < LIMITED_TIME)
         TurnLeft();
-      }
-      else
-      {
-        TurnRight();
-      }
     }
     else
     {
-      m_TurningBack = true;
-      TurnBack();
+      //      TurnBack();
+      unsigned int current_time = millis();
+      while (millis() - current_time < LIMITED_TIME)
+        TurnRight();
     }
   }
-//	analogWrite(MOTOR_ENA, m_lSpdRate);
-//	analogWrite(MOTOR_ENB, m_rSpdRate);
+
+  //  if (m_Turning)
+  //  {
+  //    if (millis() - m_TurningTime >= LIMITED_TIME)
+  //    {
+  //      m_Turning = false;
+  //      m_TurningTime = 0;
+  //    }
+  //    else
+  //      return;
+  //  }
+  //  unsigned int front = LOCATE->GetRange(FRONT_SIDE);
+  //  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+  //  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+  //
+  //  if (front <= MIN_FRONT_DISTANCE && left <= MIN_FRONT_DISTANCE && right <= MIN_FRONT_DISTANCE)
+  //  {
+  //    TurnBack();
+  //  }
+  //  else
+  //  {
+  //    if (front >= MAX_DISTANCE)
+  //    {
+  //      TurnForward();
+  //      m_Turning = false;
+  //      return;
+  //    }
+  //
+  //    if (front > MIN_FRONT_DISTANCE)
+  //    {
+  //      if (left >= front)
+  //      {
+  //        m_Turning = true;
+  //        TurnBack();
+  //        if (right >= front)
+  //        {
+  //          if (left > right)
+  //          {
+  //            SetTurning();
+  //            TurnLeft();
+  //          }
+  //          else
+  //          {
+  //            SetTurning();
+  //            TurnRight();
+  //          }
+  //        }
+  //        else
+  //        {
+  //          SetTurning();
+  //          TurnLeft();
+  //        }
+  //      }
+  //
+  //      if (right >= front)
+  //      {
+  //        m_Turning = true;
+  //        TurnBack();
+  //        if (left >= front)
+  //        {
+  //          if (left > right)
+  //          {
+  //            SetTurning();
+  //            TurnLeft();
+  //          }
+  //          else
+  //          {
+  //            SetTurning();
+  //            TurnRight();
+  //          }
+  //        }
+  //        else
+  //        {
+  //          SetTurning();
+  //          TurnRight();
+  //        }
+  //      }
+  //
+  //      if (!m_Turning)
+  //      {
+  //        if (left <= MIN_SIDE_DISTANCE)
+  //        {
+  //          TurnBack();
+  //          TurnRight();
+  //        }
+  //        if (right <= MIN_SIDE_DISTANCE)
+  //        {
+  //          TurnBack();
+  //          TurnLeft();
+  //        }
+  //      }
+  //      TurnForward();
+  //      m_Turning = false;
+  //    }
+  //    else
+  //    {
+  //      //Stop();
+  //      m_Turning = true;
+  //      TurnBack();
+  //      if (left > right)
+  //      {
+  //        SetTurning();
+  //        TurnLeft();
+  //      }
+  //      else
+  //      {
+  //        SetTurning();
+  //        TurnRight();
+  //      }
+  //    }
+  //  }
 }
 
 void Controller::Move(int direct)
 {
-  switch(direct)
+  switch (direct)
   {
     case LEFT_SIDE:
       SPEED->Stop();
       digitalWrite(MOTOR_IN1, HIGH);
       digitalWrite(MOTOR_IN4, HIGH);
-    break;
+      break;
 
     case RIGHT_SIDE:
       SPEED->Stop();
       digitalWrite(MOTOR_IN2, HIGH);
       digitalWrite(MOTOR_IN3, HIGH);
-    break;
-    
+      break;
+
     case FRONT_SIDE:
       SPEED->Start();
       digitalWrite(MOTOR_IN2, HIGH);
       digitalWrite(MOTOR_IN4, HIGH);
-    break;
-    
+      break;
+
     case BACK_SIDE:
       SPEED->Stop();
       digitalWrite(MOTOR_IN1, HIGH);
       digitalWrite(MOTOR_IN3, HIGH);
-    break;
+      break;
   }
   analogWrite(MOTOR_ENA, m_lSpdRate);
   analogWrite(MOTOR_ENB, m_rSpdRate);
 }
+
 

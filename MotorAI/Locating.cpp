@@ -68,6 +68,8 @@ int Locating::GetDirection()
   Serial.println(m_LastDirection);
   Serial.print("Distance: ");
   Serial.println(m_MaxDistance);
+  if (m_MaxDistance <= MIN_FRONT_DISTANCE)
+    m_LastDirection = BACK_SIDE;
   return m_LastDirection;
 }
 
@@ -103,7 +105,7 @@ unsigned int Locating::GetRange(int direct)
     break;
     
     default:
-      result = MIN_DISTANCE;
+      result = MIN_FRONT_DISTANCE;
   }
   return result;
 //  int trig = -1;
@@ -144,4 +146,5 @@ unsigned int Locating::GetRange(int direct)
 // // Serial.println(pulseIn(echo, HIGH) / 29.1f / 2);
 //  return pulseIn(echo, HIGH) / 29.1f / 2;
 }
+
 

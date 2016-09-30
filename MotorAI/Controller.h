@@ -30,10 +30,14 @@ class Controller
   private:
     int m_CurrentDirection;
     bool m_TurningBack;
+    bool m_Turning;
+    unsigned int m_TurningTime;
     void TurnForward();
     void TurnLeft();
     void TurnRight();
     void TurnBack();
+    void SetTurning();
+    void RunSpeed(float leftwheel, float rightwheel);
 	void HandleTurnDirection(int left, int right);
     
   //Singleton
@@ -51,4 +55,5 @@ class Controller
 #define CONTROL Controller::GetInstance()
 
 #endif //__CONTROLLER_H__
+
 
