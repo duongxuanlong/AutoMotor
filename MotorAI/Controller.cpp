@@ -117,18 +117,28 @@ void Controller::TurnForward()
 
 void Controller::TurnLeft()
 {
-  digitalWrite(MOTOR_IN2, LOW);
-  digitalWrite(MOTOR_IN1, HIGH);
-  digitalWrite(MOTOR_IN4, HIGH);
+//  digitalWrite(MOTOR_IN2, LOW);
+//  digitalWrite(MOTOR_IN1, HIGH);
+//  digitalWrite(MOTOR_IN4, HIGH);
+//  digitalWrite(MOTOR_IN3, LOW);
+
+  digitalWrite(MOTOR_IN2, HIGH);
+  digitalWrite(MOTOR_IN1, LOW);
+  digitalWrite(MOTOR_IN4, LOW);
   digitalWrite(MOTOR_IN3, LOW);
 }
 
 void Controller::TurnRight()
 {
-  digitalWrite(MOTOR_IN2, HIGH);
+//  digitalWrite(MOTOR_IN2, HIGH);
+//  digitalWrite(MOTOR_IN1, LOW);
+//  digitalWrite(MOTOR_IN3, HIGH);
+//  digitalWrite(MOTOR_IN4, LOW);
+
+  digitalWrite(MOTOR_IN2, LOW);
   digitalWrite(MOTOR_IN1, LOW);
-  digitalWrite(MOTOR_IN3, HIGH);
-  digitalWrite(MOTOR_IN4, LOW);
+  digitalWrite(MOTOR_IN3, LOW);
+  digitalWrite(MOTOR_IN4, HIGH);
 }
 
 void Controller::TurnBack()
@@ -160,8 +170,8 @@ void Controller::RunningOnDirection()
   //    return;
   //  }
 
-//  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
-//  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+  //  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+  //  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
 
   if (front > MIN_FRONT_DISTANCE)
   {
@@ -169,18 +179,18 @@ void Controller::RunningOnDirection()
     //    m_rSpdRate = MOTOR_MAX_SPD_RATE;
     //    RunSpeed(m_lSpdRate, m_rSpdRate);
     TurnForward();
-//    if (left <= MIN_SIDE_DISTANCE)
-//    {
-//      //TurnBack();
-//      TurnRight();
-//      return;
-//    }
-//    if (right <= MIN_SIDE_DISTANCE)
-//    {
-//      //TurnBack();
-//      TurnLeft();
-//      return;
-//    }
+    //    if (left <= MIN_SIDE_DISTANCE)
+    //    {
+    //      //TurnBack();
+    //      TurnRight();
+    //      return;
+    //    }
+    //    if (right <= MIN_SIDE_DISTANCE)
+    //    {
+    //      //TurnBack();
+    //      TurnLeft();
+    //      return;
+    //    }
 
   }
   else
@@ -210,13 +220,14 @@ void Controller::RunningOnDirection()
     //    m_lSpdRate = MOTOR_MAX_SPD_RATE / 2;
     //    m_rSpdRate = MOTOR_MAX_SPD_RATE / 2;
     //    RunSpeed(m_lSpdRate, m_rSpdRate);
-    TurnBack();
+    //    TurnBack();
     if (left > right)
     {
       //      TurnBack();
       unsigned int current_time = millis();
       while (millis() - current_time < LIMITED_TIME)
         TurnLeft();
+      TurnForward();
     }
     else
     {
@@ -224,6 +235,7 @@ void Controller::RunningOnDirection()
       unsigned int current_time = millis();
       while (millis() - current_time < LIMITED_TIME)
         TurnRight();
+      TurnForward();
     }
   }
 
