@@ -2,23 +2,13 @@
 #define __STDAFX_H__
 #include <Arduino.h>
 #include <stdarg.h>
+#include <NewPing.h>
 
 #define ARDBUFFER 16
-int DBG(String str, ...);
+#define DEBUG_MODE
+void DBG(String str, ...);
 
 /******************** PIN USAGE ********************/
-//Number of sensors
-#define SENSORS 3
-
-//Define Distances
-#define MAX_DISTANCE 400
-#define MIN_FRONT_DISTANCE 50
-#define LIMITED_SIDES 15
-#define MIN_SIDE_DISTANCE 10
-
-//DefineTime
-#define LIMITED_TIME 10
-
 //LED light
 #define LED 13
 
@@ -47,22 +37,32 @@ int DBG(String str, ...);
 //Speed rate of Motor: 0 ~ 255
 #define MOTOR_DEFAULT_SPD_RATE 127
 #define MOTOR_MAX_SPD_RATE 255
-#define MOTOR_DEFAULT_ERROR_ACCEPTABLE_VALUE 0.1
-#define MOTOR_MIN_ERROR_VALUE 0.03
+#define MOTOR_RPM_TARGET 7
+
+//Speedometer
+#define DPR_RISING_FALLING_MODE 20
+#define DPR_CHANGE_MODE (int)(DPR_RISING_FALLING_MODE * 2)
 
 //Timing
-#define MOTOR_BALANCE_PERIOD 5000 //ms
+#define WHEEL_UPDATE_INTERNAL 5000 //ms
+#define LOCATING_PING_INTERVAL 33 //ms
+#define LIMITED_TIME 10 //ms
 
+//Direction Enum
 #define FRONT_SIDE 0
 #define LEFT_SIDE 1
 #define RIGHT_SIDE 2
 #define BACK_SIDE 3
 
 #define DELTA_DISTANCE 5
-//Direction Enum
-//#define LEFT_SIDE 4
-//#define RIGHT_SIDE 6
-//#define FRONT_SIDE 8
-//#define BACK_SIDE 2
+
+//Number of sensors
+#define TOTAL_SENSORS 3
+
+//Define Distances
+#define MAX_DISTANCE 400
+#define MIN_FRONT_DISTANCE 50
+#define LIMITED_SIDES 15
+#define MIN_SIDE_DISTANCE 10
 #endif //__STDAFX_H__
 

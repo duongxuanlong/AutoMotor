@@ -15,6 +15,7 @@ Speedometer::~Speedometer(){ }
 
 void Speedometer::Init(int mode)
 {
+  DBG("Speedometer::Init(mode = %d)", mode);
   m_mode = mode;
   
   pinMode(L_SPD_TRACK, INPUT_PULLUP);
@@ -25,6 +26,7 @@ void Speedometer::Init(int mode)
 }
 void Speedometer::Start()
 {
+  DBG("Speedometer::Start()");
   if (!s_bRecording)
   {
     s_lTrack = 0;
@@ -36,6 +38,7 @@ void Speedometer::Start()
 
 void Speedometer::Stop()
 {
+  DBG("Speedometer::Stop()");
   if (s_bRecording)
   {
     s_RecTime = -1;
@@ -50,7 +53,6 @@ void Speedometer::LeftWheelTrack()
   if(s_bRecording)
   {
     s_lTrack++;
-    DBG("--->s_lTrack = %d", s_lTrack);
   }
 }
 
@@ -59,37 +61,24 @@ void Speedometer::RightWheelTrack()
   if(s_bRecording)
   {
     s_rTrack++;
-    DBG("--->s_lTrack = %d", s_rTrack);
   }
 }
 float Speedometer::GetLeftRPM()
 {
-  DBG("%s" , "GetLeftRPM: ");
   if(s_RecTime < 0)
     return 0;
   float dpr = GetCurrentDPR();
-  long timez = (millis() - s_RecTime) * 1000;
-  DBG("--->s_lTrack = %d", s_lTrack);
-  DBG("--->dpr = %f", dpr);
-  DBG("--->s_RecTime = %l", s_RecTime);
-  DBG("--->timez = %l", timez);
-  DBG("--->LeftRPM = %f", s_lTrack / dpr / timez);
-  return s_lTrack / dpr / timez;
+  float timez = (millis() - s_RecTime) / 1000;
+  return (s_lTrack / dpr) / timez;
 }
 
 float Speedometer::GetRightRPM()
 {
-  DBG("%s" , "GetRightRPM: ");
   if(s_RecTime < 0)
     return 0;
   float dpr = GetCurrentDPR();
-  long timez = (millis() - s_RecTime) * 1000;
-  DBG("--->s_rTrack = %d", Speedometer::s_rTrack);
-  DBG("--->dpr = %f", dpr);
-  DBG("--->s_RecTime = %l", s_RecTime);
-  DBG("--->timez = %l", timez);
-  DBG("--->RightRPM = %f", s_rTrack / dpr / timez);
-  return s_rTrack / dpr / timez;
+  float timez = (millis() - s_RecTime) / 1000;
+  return (s_rTrack / dpr) / timez;
 }
 
 int Speedometer::GetCurrentDPR()
@@ -102,9 +91,7 @@ int Speedometer::GetCurrentDPR()
     case CHANGE:
       return DPR_CHANGE_MODE;
     default:
-      DBG("%s" , "Seriously -_-!");
       return 0;
   }  
 }
-
 

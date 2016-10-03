@@ -2,32 +2,29 @@
 #define __LOCATING_H__
 
 #include "stdafx.h"
-#include <NewPing.h>
 
 class Locating
 {
+  typedef struct locateInfo
+  {
+    NewPing* ping;
+    unsigned int distance;
+  } LOCATE_INFO;
+
   public:
     Locating();
     ~Locating();
     
-  public:
-    unsigned int m_Distances[3];
-    void UpdateDistance();
-    int GetDirection();
+  private:
+    LOCATE_INFO m_info[TOTAL_SENSORS];
     
   public:
-    void Init();
+    void Init();    
     unsigned int GetRange(int direct);
-	  unsigned int GetMaxDistance();
-    
+
   //Singleton
   private:
     static Locating* s_instance;
-    int m_LastDirection;
-	  unsigned int m_MaxDistance;
-    NewPing* m_CenterSensor;
-    NewPing* m_LeftSensor;
-    NewPing* m_RightSensor;
     
   public:
     static Locating* GetInstance()
@@ -40,5 +37,4 @@ class Locating
 #define LOCATE Locating::GetInstance()
 
 #endif //__LOCATING_H__
-
 

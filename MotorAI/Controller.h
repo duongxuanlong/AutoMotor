@@ -4,14 +4,10 @@
 #include "stdafx.h"
 #include "Locating.h"
 #include "Speedometer.h"
+#include "WheelBalance.h"
 
 class Controller
 {
-  private:
-    int m_lSpdRate;
-    int m_rSpdRate;
-    float m_eBalance;
-    
   public:
     Controller();
     ~Controller();
@@ -19,26 +15,10 @@ class Controller
   public:
     void Init();
     void Stop();
-    void Move(int direct);
+    void Move(int direct, unsigned int angle = 0);
+    void SetSpeed(unsigned int lSpdRate, unsigned int rSpdRate);
     
-    void Balance();
-
-  public:
-    int GetCurrentDirection();
-	void SetDirection(int direction);
-	void RunningOnDirection();
-  private:
-    int m_CurrentDirection;
-    bool m_TurningBack;
-    bool m_Turning;
-    unsigned int m_TurningTime;
-    void TurnForward();
-    void TurnLeft();
-    void TurnRight();
-    void TurnBack();
-    void SetTurning();
-    void RunSpeed(float leftwheel, float rightwheel);
-	void HandleTurnDirection(int left, int right);
+    void AutoRun();
     
   //Singleton
   private:
@@ -55,5 +35,4 @@ class Controller
 #define CONTROL Controller::GetInstance()
 
 #endif //__CONTROLLER_H__
-
 

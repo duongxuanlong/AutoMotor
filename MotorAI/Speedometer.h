@@ -3,9 +3,6 @@
 
 #include "stdafx.h"
 
-#define DPR_RISING_FALLING_MODE 20
-#define DPR_CHANGE_MODE (int)(DPR_RISING_FALLING_MODE * 2)
-
 class Speedometer
 {    
   private:
@@ -22,14 +19,15 @@ class Speedometer
     
   public:
     void Init(int mode);
-    int GetCurrentDPR(); //dpr: drain per round
-    
     void Start();
     void Stop();
     
-    float GetLeftRPM();
+    float GetLeftRPM(); //rpm: round per ms
     float GetRightRPM();
 
+  private:
+    int GetCurrentDPR(); //dpr: drain per round
+    
   private:
     static void LeftWheelTrack();
     static void RightWheelTrack();
@@ -49,5 +47,4 @@ class Speedometer
 #define SPEED Speedometer::GetInstance()
 
 #endif //__SPEEDOMETER_H__
-
 
