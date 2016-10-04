@@ -5,7 +5,7 @@
 #include <NewPing.h>
 
 #define ARDBUFFER 16
-#define DEBUG_MODE
+//#define DEBUG_MODE
 void DBG(String str, ...);
 
 /******************** PIN USAGE ********************/
@@ -46,7 +46,8 @@ void DBG(String str, ...);
 //Timing
 #define WHEEL_UPDATE_INTERNAL 5000 //ms
 #define LOCATING_PING_INTERVAL 33 //ms
-#define LIMITED_TIME 10 //ms
+#define LIMITED_TIME 100 //ms
+#define LIMITED_MINOR_TIME 100 //ms
 
 //Direction Enum
 #define FRONT_SIDE 0
@@ -61,8 +62,8 @@ void DBG(String str, ...);
 
 //Define Distances
 #define MAX_DISTANCE 400
-#define MIN_FRONT_DISTANCE 50
-#define LIMITED_SIDES 15
-#define MIN_SIDE_DISTANCE 10
+#define MIN_FRONT_DISTANCE 100
+#define LIMITED_SIDES 5
+#define MIN_SIDE_DISTANCE 80
 #endif //__STDAFX_H__
 

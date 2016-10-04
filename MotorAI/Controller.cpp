@@ -48,7 +48,7 @@ void Controller::Move(int direct, unsigned int angle)
       digitalWrite(MOTOR_IN3, LOW);
       digitalWrite(MOTOR_IN4, HIGH);
       break;
-      
+
     case LEFT_SIDE:
       SPEED->Stop();
       //SPEED->SetAngle(angle);
@@ -88,35 +88,48 @@ void Controller::Stop()
 
 void Controller::AutoRun()
 {
-  unsigned int front = LOCATE->GetRange(FRONT_SIDE);
-  if (front > MIN_FRONT_DISTANCE)
-  {
-    Move(FRONT_SIDE);
-  }
-  else
-  {
-    unsigned int left = LOCATE->GetRange(LEFT_SIDE);
-    unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
-    if (front <= LIMITED_SIDES && left <= LIMITED_SIDES && right <= LIMITED_SIDES)
+    unsigned int front = LOCATE->GetRange(FRONT_SIDE);
+    if (front > MIN_FRONT_DISTANCE)
     {
-      Move(BACK_SIDE);
-      return;
-    }
-    //Move(BACK_SIDE);
-    if (left > right)
-    {
-      unsigned int current_time = millis();
-      while (millis() - current_time < LIMITED_TIME)
-        Move(LEFT_SIDE);
-	  Move(FRONT_SIDE);
+      Move(FRONT_SIDE);
     }
     else
     {
-      unsigned int current_time = millis();
-      while (millis() - current_time < LIMITED_TIME)
+      unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+      unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+      if (front <= LIMITED_SIDES && left <= LIMITED_SIDES && right <= LIMITED_SIDES)
+      {
+        Move(BACK_SIDE);
+        return;
+      }
+  
+      if (front > left && front > right)
+      {
+        Move(FRONT_SIDE);
+        return;
+      }
+      //Move(BACK_SIDE);
+      if (front <= LIMITED_SIDES || left <= LIMITED_SIDES || right <= LIMITED_SIDES)
+      {
+        Move(BACK_SIDE);
+        delay(LIMITED_MINOR_TIME);
+      }
+      if (left > right)
+      {
+        //      unsigned int current_time = millis();
+        //      while (millis() - current_time < LIMITED_TIME)
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME);
+        Move(FRONT_SIDE);
+      }
+      else
+      {
+        //      unsigned int current_time = millis();
+        //      while (millis() - current_time < LIMITED_TIME)
         Move(RIGHT_SIDE);
-	  Move(FRONT_SIDE);
+        delay(LIMITED_TIME);
+        Move(FRONT_SIDE);
+      }
     }
-  }
 }
 

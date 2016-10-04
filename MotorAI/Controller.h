@@ -11,25 +11,26 @@ class Controller
   public:
     Controller();
     ~Controller();
-    
+
   public:
+    void RunForward();
     void Init();
     void Stop();
     void Move(int direct, unsigned int angle = 0);
     void SetSpeed(unsigned int lSpdRate, unsigned int rSpdRate);
-    
+
     void AutoRun();
-    
-  //Singleton
+
+    //Singleton
   private:
     static Controller* s_instance;
-    
+
   public:
     static Controller* GetInstance()
     {
-        if (!s_instance)
-          s_instance = new Controller();
-        return s_instance;
+      if (!s_instance)
+        s_instance = new Controller();
+      return s_instance;
     }
 };
 #define CONTROL Controller::GetInstance()
