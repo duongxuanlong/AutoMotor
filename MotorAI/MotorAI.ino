@@ -17,14 +17,13 @@ void setup()
 	Serial.begin(9600);
 
   CONTROL->Init();
-  WHEEL->Init(8,10,1,7);
 }
 
 //main update
 void loop()
 {
 //  WHEEL->Update();
-//  CONTROL->RunForward();
+//  CONTROL->Test();
   CONTROL->AutoRun();
 }
 

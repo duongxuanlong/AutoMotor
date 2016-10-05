@@ -8,18 +8,25 @@
 
 class Controller
 {
+  private:
+    static volatile bool s_leftMoveDone;
+    static volatile bool s_rightMoveDone;
+    
   public:
     Controller();
     ~Controller();
 
   public:
-    void RunForward();
     void Init();
     void Stop();
     void Move(int direct, unsigned int angle = 0);
     void SetSpeed(unsigned int lSpdRate, unsigned int rSpdRate);
 
     void AutoRun();
+    void Test();
+
+    static void LeftMoveDone();
+    static void RightMoveDone();
 
     //Singleton
   private:

@@ -2,9 +2,14 @@
 
 volatile int Speedometer::s_lTrack = 0;
 volatile int Speedometer::s_rTrack = 0;
-long Speedometer::s_RecTime = -1;
-bool Speedometer::s_bRecording = false;
+volatile long Speedometer::s_RecTime = -1;
+volatile bool Speedometer::s_bRecording = false;
+volatile int Speedometer::s_lLimit = 0;
+volatile int Speedometer::s_rLimit = 0;
 
+volatile ReachLimitCallback Speedometer::s_pLeftLimitCB = NULL;
+volatile ReachLimitCallback Speedometer::s_pRightLimitCB = NULL;
+    
 Speedometer* Speedometer::s_instance = NULL;
 
 Speedometer::Speedometer():
@@ -24,6 +29,7 @@ void Speedometer::Init(int mode)
   attachInterrupt(digitalPinToInterrupt(L_SPD_TRACK), Speedometer::LeftWheelTrack, m_mode);
   attachInterrupt(digitalPinToInterrupt(R_SPD_TRACK), Speedometer::RightWheelTrack, m_mode);
 }
+
 void Speedometer::Start()
 {
   DBG("Speedometer::Start()");
@@ -48,11 +54,47 @@ void Speedometer::Stop()
   }
 }
 
+void Speedometer::SetLeftLimit(unsigned int angle)
+{
+  if(angle <= 0 || angle >= 360) return; //meaningless
+  s_lLimit = int(angle * SPEED->GetCurrentDPR() / 90.0f * 0.8f) ;
+}
+
+void Speedometer::SetRightLimit(unsigned int angle)
+{
+  if(angle <= 0 || angle >= 360) return; //meaningless
+  s_rLimit = int(angle * SPEED->GetCurrentDPR() / 90.0f * 0.8f) ;
+}
+
+void Speedometer::SetLeftReachLimitCallback(ReachLimitCallback cb)
+{
+  if(s_pLeftLimitCB == NULL)
+    s_pLeftLimitCB = cb;
+}
+
+void Speedometer::SetRightReachLimitCallback(ReachLimitCallback cb)
+{
+  if(s_pRightLimitCB == NULL)
+    s_pRightLimitCB = cb;
+}
+
 void Speedometer::LeftWheelTrack()
 {
   if(s_bRecording)
   {
     s_lTrack++;
+  }
+
+  if(s_lLimit >= 0)
+  {
+    s_lLimit--;
+    if(s_lLimit < 0)
+    {
+      if(s_pLeftLimitCB != NULL)
+      {
+        s_pLeftLimitCB();
+      }
+    }
   }
 }
 
@@ -62,7 +104,20 @@ void Speedometer::RightWheelTrack()
   {
     s_rTrack++;
   }
+  
+  if(s_rLimit >= 0)
+  {
+    s_rLimit--;
+    if(s_rLimit < 0)
+    {
+      if(s_pRightLimitCB != NULL)
+      {
+        s_pRightLimitCB();
+      }
+    }
+  }
 }
+
 float Speedometer::GetLeftRPM()
 {
   if(s_RecTime < 0)

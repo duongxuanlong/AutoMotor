@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "Speedometer.h"
+#include "Controller.h"
 
 class WheelBalance
 {

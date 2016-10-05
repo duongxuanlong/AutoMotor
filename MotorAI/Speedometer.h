@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 
+typedef void (*ReachLimitCallback) ();
+
 class Speedometer
 {    
   private:
@@ -10,9 +12,13 @@ class Speedometer
     
     static volatile int s_lTrack;
     static volatile int s_rTrack;
-    static long s_RecTime;
-    static bool s_bRecording;
-    
+    static volatile long s_RecTime;
+    static volatile bool s_bRecording;
+    static volatile int s_lLimit;
+    static volatile int s_rLimit;
+
+    static volatile ReachLimitCallback s_pLeftLimitCB;
+    static volatile ReachLimitCallback s_pRightLimitCB;
   public:
     Speedometer();
     ~Speedometer();
@@ -24,6 +30,11 @@ class Speedometer
     
     float GetLeftRPM(); //rpm: round per ms
     float GetRightRPM();
+    
+    static void SetLeftLimit(unsigned int angle);
+    static void SetRightLimit(unsigned int angle);
+    static void SetLeftReachLimitCallback(ReachLimitCallback cb);
+    static void SetRightReachLimitCallback(ReachLimitCallback cb);
 
   private:
     int GetCurrentDPR(); //dpr: drain per round

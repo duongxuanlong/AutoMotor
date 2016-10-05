@@ -26,7 +26,7 @@ void WheelBalance::Init(const int Kp, const int Kd, const int Ki, const float ta
 void WheelBalance::Update(){
   if(millis() - m_lastUpdate == WHEEL_UPDATE_INTERNAL)
   {
-    DBG("m_lastUpdate");
+    DBG("WheelBalance::Update() - Do Check");
     float lSpd = SPEED->GetLeftRPM();
     float lError = m_target - lSpd;
     float lBal = m_Kp*lError + m_Kd*(lError - m_lError)*(1000/WHEEL_UPDATE_INTERNAL) + m_Ki*WHEEL_UPDATE_INTERNAL*lError/1000;
@@ -38,6 +38,20 @@ void WheelBalance::Update(){
     float rBal = m_Kp*rError + m_Kd*(rError - m_rError)*(1000/WHEEL_UPDATE_INTERNAL) + m_Ki*WHEEL_UPDATE_INTERNAL*rError/1000;
     m_rError = rError;
     DBG("rBal: %f", rBal);
+
+    int newLSpd = MOTOR_MAX_SPD_RATE;
+    int newRSpd = MOTOR_MAX_SPD_RATE;
+    if(lBal > rBal)
+    {
+      newRSpd = int(MOTOR_MAX_SPD_RATE * (1 - (rBal/lBal)));
+    }
+    else
+    {
+      newLSpd = int(MOTOR_MAX_SPD_RATE * (1 - (lBal/rBal)));
+    }
+    CONTROL->SetSpeed(newLSpd, newRSpd);
+    DBG("newLSpd: %d", newLSpd);
+    DBG("newRSpd: %d", newRSpd);
     
     m_lastUpdate = millis();    
   }
