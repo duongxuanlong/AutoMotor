@@ -57,13 +57,27 @@ void Speedometer::Stop()
 void Speedometer::SetLeftLimit(unsigned int angle)
 {
   if(angle <= 0 || angle >= 360) return; //meaningless
-  s_lLimit = int(angle * SPEED->GetCurrentDPR() / 90.0f * 0.8f) ;
+  s_lLimit = int(angle * SPEED->GetCurrentDPR() / LEFT_LIMIT_WHEEL_ANGLE_PER_ROUND) ;
 }
 
 void Speedometer::SetRightLimit(unsigned int angle)
 {
   if(angle <= 0 || angle >= 360) return; //meaningless
-  s_rLimit = int(angle * SPEED->GetCurrentDPR() / 90.0f * 0.8f) ;
+  s_rLimit = int(angle * SPEED->GetCurrentDPR() / DEFAULT_WHEEL_ANGLE_PER_ROUND) ;
+}
+
+void Speedometer::SetBackLimit(unsigned int duration)
+{
+  if(duration <= 0) return; //meaningless
+  s_lLimit = duration * SPEED->GetCurrentDPR();
+  s_rLimit = duration * SPEED->GetCurrentDPR();
+}
+
+void Speedometer::SetFrontLimit(unsigned int duration)
+{
+  if(duration <= 0) return; //meaningless
+  s_lLimit = duration * SPEED->GetCurrentDPR();
+  s_rLimit = duration * SPEED->GetCurrentDPR();
 }
 
 void Speedometer::SetLeftReachLimitCallback(ReachLimitCallback cb)

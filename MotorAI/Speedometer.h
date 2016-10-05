@@ -33,6 +33,8 @@ class Speedometer
     
     static void SetLeftLimit(unsigned int angle);
     static void SetRightLimit(unsigned int angle);
+    static void SetBackLimit(unsigned int duration); //round
+    static void SetFrontLimit(unsigned int duration); //round
     static void SetLeftReachLimitCallback(ReachLimitCallback cb);
     static void SetRightReachLimitCallback(ReachLimitCallback cb);
 

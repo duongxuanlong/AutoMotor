@@ -5,7 +5,8 @@ Controller* Controller::s_instance = NULL;
 volatile bool Controller::s_leftMoveDone = false;
 volatile bool Controller::s_rightMoveDone = false;
     
-Controller::Controller()
+Controller::Controller():
+obsSolving(-1)
 { }
 
 Controller::~Controller() { }
@@ -55,13 +56,19 @@ void Controller::SetSpeed(unsigned int lSpdRate, unsigned int rSpdRate)
   analogWrite(MOTOR_ENB, rSpdRate);
 }
 
-void Controller::Move(int direct, unsigned int angle)
+void Controller::Move(int direct, unsigned int opt)
 {
-  DBG("Controller::Move(direct = %d, angle = %d)", direct, angle);
+  DBG("Controller::Move(direct = %d, opt = %d)", direct, opt);
+  if(opt > 0)
+  {
+      s_leftMoveDone = false;
+      s_rightMoveDone = false;
+  }
   switch (direct)
   {
     case FRONT_SIDE:
       SPEED->Start();
+      SPEED->SetFrontLimit(opt);
       digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN2, HIGH);
       digitalWrite(MOTOR_IN3, LOW);
@@ -70,8 +77,8 @@ void Controller::Move(int direct, unsigned int angle)
 
     case LEFT_SIDE:
       SPEED->Stop();
-      s_leftMoveDone = false;
-      SPEED->SetLeftLimit(angle);
+      s_rightMoveDone = true;
+      SPEED->SetLeftLimit(opt);
       digitalWrite(MOTOR_IN1, HIGH);
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN3, LOW);
@@ -80,8 +87,8 @@ void Controller::Move(int direct, unsigned int angle)
 
     case RIGHT_SIDE:
       SPEED->Stop();
-      s_rightMoveDone = false;
-      SPEED->SetRightLimit(angle);
+      s_leftMoveDone = true;
+      SPEED->SetRightLimit(opt);
       digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN2, HIGH);
       digitalWrite(MOTOR_IN3, HIGH);
@@ -90,6 +97,7 @@ void Controller::Move(int direct, unsigned int angle)
 
     case BACK_SIDE:
       SPEED->Stop();
+      SPEED->SetBackLimit(opt);
       digitalWrite(MOTOR_IN1, HIGH);
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN3, HIGH);
@@ -105,18 +113,6 @@ void Controller::Stop()
   digitalWrite(MOTOR_IN2, LOW);
   digitalWrite(MOTOR_IN3, LOW);
   digitalWrite(MOTOR_IN4, LOW);
-}
-
-void Controller::Test()
-{
-  Move(LEFT_SIDE, 90);
-  while(!s_leftMoveDone);
-  Stop();
-  delay(5000);
-  Move(RIGHT_SIDE, 90);
-  while(!s_rightMoveDone);
-  Stop();
-  delay(5000);
 }
 
 void Controller::AutoRun()
@@ -166,3 +162,134 @@ void Controller::AutoRun()
     }
 }
 
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
+
+void Controller::AutoRun2()
+{
+  unsigned int front = LOCATE->GetRange(FRONT_SIDE);
+  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+
+  int direct[50];
+  int opt[50];
+  int count = 0;
+
+  //Planning
+  if (front < 25) //Decision for new direction need to be made here
+  {
+    if (front < 10) //stuck front, should back then choose new direction
+    {
+      direct[count] = BACK_SIDE;
+      opt[count++] = 10 - front;
+    }
+    else {} //This is perfect time to change direction
+    
+    if (obsSolving > 0 && left >= 50 && right >= 50)
+    {
+      int testLeft = abs(obsSolving - 90);
+      int testRight = abs(obsSolving + 90);
+
+      direct[count] = testLeft < testRight? LEFT_SIDE : RIGHT_SIDE ;
+      obsSolving = testLeft < testRight? testLeft : testRight;
+      opt[count++] = 90;
+      
+    }
+    else if (left >= 50 && right > left)
+    {
+      direct[count] = LEFT_SIDE;
+      if(obsSolving == 0)
+      {
+        obsSolving = -90;
+      }
+      else
+      {
+        obsSolving -= 90;
+      }
+      opt[count++] = 90;
+    }
+    else if (right >= 50 && left > right)
+    {
+      direct[count] = RIGHT_SIDE;
+      if(obsSolving == 0)
+      {
+        obsSolving = -90;
+      }
+      else
+      {
+        obsSolving += 90;
+      }
+      opt[count++] = 90;
+    }
+    else
+    {
+      direct[count] = left > right? LEFT_SIDE : RIGHT_SIDE;
+      if(obsSolving != -1)
+      {
+        obsSolving += direct[count] == LEFT_SIDE? -90 : 90;
+      }
+      opt[count++] = 90;
+    }
+  }
+  else
+  {
+    if (obsSolving > 0 && (left >= 50 || right >= 50))
+    {
+      int testLeft = left >= 50? abs(obsSolving - 90) : 360;
+      int testRight = right >= 50? abs(obsSolving + 90) : 360;
+
+      if(testLeft < obsSolving && testLeft < testRight)
+      {
+        direct[count] = LEFT_SIDE;
+        obsSolving -= 90;
+        opt[count++] = 90;
+      }
+      else if(testRight < obsSolving && testRight < testLeft)
+      {
+        direct[count] = RIGHT_SIDE;
+        obsSolving += 90;
+        opt[count++] = 90;
+      }
+      else
+      {
+        direct[count] = FRONT_SIDE;
+        opt[count++] = 0;
+      }
+    }
+    else if (left <= 5 && right >= 5) //It run too close to the left, need move to right for awhile
+    {
+      direct[count] = RIGHT_SIDE;
+      opt[count++] = 20;
+  
+      direct[count] = FRONT_SIDE;
+      opt[count++] = 6 - left;
+  
+      direct[count] = LEFT_SIDE;
+      opt[count++] = 10;
+    }
+    else if (right <= 5 && left >= 5) //It run too close to the right, need move to left for awhile
+    {
+      direct[count] = LEFT_SIDE;
+      opt[count++] = 20;
+  
+      direct[count] = FRONT_SIDE;
+      opt[count++] = 6 - left;
+  
+      direct[count] = RIGHT_SIDE;
+      opt[count++] = 10;
+    }
+    else
+    {
+      direct[count] = FRONT_SIDE;    
+      opt[count++] = 0;
+    }
+  }
+
+   //Process plan
+  for (int i = 0; i < count; i++)
+  {
+    Move(direct[i], opt[i]);
+    while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
+  }
+}

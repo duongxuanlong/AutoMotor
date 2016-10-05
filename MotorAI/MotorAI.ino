@@ -23,7 +23,7 @@ void setup()
 void loop()
 {
 //  WHEEL->Update();
-//  CONTROL->Test();
+//  CONTROL->AutoRun2();
   CONTROL->AutoRun();
 }
 
