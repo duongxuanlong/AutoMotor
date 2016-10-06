@@ -25,5 +25,6 @@ void loop()
 //  WHEEL->Update();
 //  CONTROL->AutoRun2();
   CONTROL->AutoRun();
+//  CONTROL->RunQuickTest();
 }
 

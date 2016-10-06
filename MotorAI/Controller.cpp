@@ -41,11 +41,15 @@ void Controller::Init()
 
 void Controller::LeftMoveDone()
 {
+  digitalWrite(MOTOR_IN1, LOW);
+  digitalWrite(MOTOR_IN2, LOW);
   s_leftMoveDone = true;
 }
 
 void Controller::RightMoveDone()
 {
+  digitalWrite(MOTOR_IN3, LOW);
+  digitalWrite(MOTOR_IN4, LOW);
   s_rightMoveDone = true;
 }
     
@@ -75,8 +79,8 @@ void Controller::Move(int direct, unsigned int opt)
 
     case LEFT_SIDE:
       SPEED->Stop();
-      s_rightMoveDone = true;
       SPEED->SetLeftLimit(opt);
+      SPEED->SetRightLimit(opt);
       digitalWrite(MOTOR_IN1, HIGH);
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN3, LOW);
@@ -85,7 +89,7 @@ void Controller::Move(int direct, unsigned int opt)
 
     case RIGHT_SIDE:
       SPEED->Stop();
-      s_leftMoveDone = true;
+      SPEED->SetLeftLimit(opt);
       SPEED->SetRightLimit(opt);
       digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN2, HIGH);
@@ -100,6 +104,12 @@ void Controller::Move(int direct, unsigned int opt)
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN3, HIGH);
       digitalWrite(MOTOR_IN4, LOW);
+      break;
+    default:
+      Stop();
+      delay(opt);      
+      s_leftMoveDone = true;
+      s_rightMoveDone = true;
       break;
   }
 }
@@ -237,20 +247,25 @@ void Controller::AutoRun2()
   {
     direct[count] = RIGHT_SIDE;
     opt[count++] = 10;
+    
+    direct[count] = -1;
+    opt[count++] = 100;
   }
   else if (right == 0)
   {
     direct[count] = LEFT_SIDE;
     opt[count++] = 10;
+    
+    direct[count] = -1;
+    opt[count++] = 100;
   }
-  else if (front < 25) //Decision for new direction need to be made here
+  else if (front < 60) //Decision for new direction need to be made here
   {
-    if (front < 6) //stuck front, should back then choose new direction
+    if (front < 10) //stuck front, should back then choose new direction
     {
       direct[count] = BACK_SIDE;
-      opt[count++] = (int)(3 - front/2 - 0.1f);
+      opt[count++] = (int)(front/10.0f + 0.5f);
     }
-    else {} //This is perfect time to change direction
     
     if (obsSolving > 0 && left >= 50 && right >= 50)
     {
@@ -290,7 +305,7 @@ void Controller::AutoRun2()
     }
     else
     {
-      direct[count] = left > right? LEFT_SIDE : RIGHT_SIDE;
+      direct[count] = left >= right? LEFT_SIDE : RIGHT_SIDE;
       if(obsSolving != -1)
       {
         obsSolving += direct[count] == LEFT_SIDE? -90 : 90;
@@ -348,7 +363,7 @@ void Controller::AutoRun2()
     else
     {
       direct[count] = FRONT_SIDE;    
-      opt[count++] = 0;
+      opt[count++] = (int)((front - 60)/10.0f);
     }
   }
 
@@ -357,5 +372,6 @@ void Controller::AutoRun2()
   {
     Move(direct[i], opt[i]);
     while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
+    Stop();
   }
 }
