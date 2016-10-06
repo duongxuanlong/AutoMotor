@@ -242,7 +242,7 @@ void Controller::AutoRun2()
   int count = 0;
 
   //Planning
-
+  if(front == 0) front = 100;
   if(left == 0)
   {
     direct[count] = RIGHT_SIDE;
@@ -338,7 +338,7 @@ void Controller::AutoRun2()
         opt[count++] = 0;
       }
     }
-    else if (left <= 3 && right >= 3) //It run too close to the left, need move to right for awhile
+    else if (left <= 5 && right >= 5) //It run too close to the left, need move to right for awhile
     {
       direct[count] = RIGHT_SIDE;
       opt[count++] = 10;
@@ -349,7 +349,7 @@ void Controller::AutoRun2()
       direct[count] = LEFT_SIDE;
       opt[count++] = 10;
     }
-    else if (right <= 3 && left >= 3) //It run too close to the right, need move to left for awhile
+    else if (right <= 5 && left >= 5) //It run too close to the right, need move to left for awhile
     {
       direct[count] = LEFT_SIDE;
       opt[count++] = 10;
@@ -359,6 +359,11 @@ void Controller::AutoRun2()
   
       direct[count] = RIGHT_SIDE;
       opt[count++] = 10;
+    }
+    esle if(left <= 5 && right <= 5)
+    {
+      direct[count] = BACK_SIDE;
+      opt[count++] = 1;
     }
     else
     {
