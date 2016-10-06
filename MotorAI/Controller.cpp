@@ -115,50 +115,84 @@ void Controller::Stop()
 
 void Controller::AutoRun()
 {
-    unsigned int front = LOCATE->GetRange(FRONT_SIDE);
-    if (front > MIN_FRONT_DISTANCE)
+  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+  unsigned int front = LOCATE->GetRange(FRONT_SIDE);
+
+  if (left == 0 && front == 0 && right == 0)
+  {
+    Stop();
+    return;
+  }
+
+  if (left >= MIN_SIDE_DISTANCE && right >= MIN_SIDE_DISTANCE)
+  {
+    if (left < right)
     {
+//      Move(BACK_SIDE);
+//      delay(LIMITED_TIME);
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME);
       Move(FRONT_SIDE);
+      delay(LIMITED_TIME);
+      return;
     }
     else
     {
-      unsigned int left = LOCATE->GetRange(LEFT_SIDE);
-      unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
-      if (front <= LIMITED_SIDES && left <= LIMITED_SIDES && right <= LIMITED_SIDES)
-      {
-        Move(BACK_SIDE);
-        return;
-      }
-  
-      if (front > left && front > right)
-      {
-        Move(FRONT_SIDE);
-        return;
-      }
-      //Move(BACK_SIDE);
-      if (front <= LIMITED_SIDES || left <= LIMITED_SIDES || right <= LIMITED_SIDES)
-      {
-        Move(BACK_SIDE);
-        delay(LIMITED_MINOR_TIME);
-      }
-      if (left > right)
-      {
-        //      unsigned int current_time = millis();
-        //      while (millis() - current_time < LIMITED_TIME)
-        Move(LEFT_SIDE);
-        delay(LIMITED_TIME);
-        Move(FRONT_SIDE);
-      }
-      else
-      {
-        //      unsigned int current_time = millis();
-        //      while (millis() - current_time < LIMITED_TIME)
-        Move(RIGHT_SIDE);
-        delay(LIMITED_TIME);
-        Move(FRONT_SIDE);
-      }
+//      Move(BACK_SIDE);
+//      delay(LIMITED_TIME);
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME);
+      Move(FRONT_SIDE);
+      delay(LIMITED_TIME);
+      return;
     }
+  }
+
+  if (left >= MIN_SIDE_DISTANCE)
+  {
+//    Move(BACK_SIDE);
+//    delay(LIMITED_TIME);
+    Move(LEFT_SIDE);
+    delay(LIMITED_TIME);
+    Move(FRONT_SIDE);
+    delay(LIMITED_TIME);
+    return;
+  }
+
+  if (right >= MIN_SIDE_DISTANCE)
+  {
+//    Move(BACK_SIDE);
+//    delay(LIMITED_TIME);
+    Move(RIGHT_SIDE);
+    delay(LIMITED_TIME);
+    Move(FRONT_SIDE);
+    delay(LIMITED_TIME);
+    return;
+  }
+
+  Move(FRONT_SIDE);
+  delay(LIMITED_TIME);
 }
+
+void Controller::RunForward()
+{
+  //  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+  //  Serial.print("left: ");
+  //  Serial.println(left);
+  //  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+  //  Serial.print("right: ");
+  //  Serial.println(right);
+  //  if (!isstop)
+  //  {
+  //    delay(LIMITED_TIME);
+  //    Move(LEFT_SIDE);
+  //    delay(LIMITED_TIME);
+  //    isstop = true;
+  //  }
+  Move(FRONT_SIDE);
+}
+
 
 /*******************************************************************/
 /*******************************************************************/

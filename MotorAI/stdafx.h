@@ -36,7 +36,7 @@ void DBG(String str, ...);
 /******************** INGAME VALUE ********************/
 //Speed rate of Motor: 0 ~ 255
 #define MOTOR_DEFAULT_SPD_RATE 127
-#define MOTOR_MAX_SPD_RATE 255
+#define MOTOR_MAX_SPD_RATE 255//255
 #define MOTOR_RPM_TARGET 7
 
 //Speedometer
@@ -49,7 +49,8 @@ void DBG(String str, ...);
 //Timing
 #define WHEEL_UPDATE_INTERNAL 5000 //ms
 #define LOCATING_PING_INTERVAL 33 //ms
-#define LIMITED_TIME 100 //ms
+#define LIMITED_TIME 150 //ms
+#define LIMITED_FORWARD_TIME 255 //ms
 #define LIMITED_MINOR_TIME 100 //ms
 
 //Direction Enum
@@ -64,9 +65,9 @@ void DBG(String str, ...);
 #define TOTAL_SENSORS 3
 
 //Define Distances
-#define MAX_DISTANCE 400
-#define MIN_FRONT_DISTANCE 100
-#define LIMITED_SIDES 5
-#define MIN_SIDE_DISTANCE 80
+#define MAX_DISTANCE 300
+#define MIN_FRONT_DISTANCE 200
+#define LIMITED_SIDES 10
+#define MIN_SIDE_DISTANCE 70
 #endif //__STDAFX_H__
 
