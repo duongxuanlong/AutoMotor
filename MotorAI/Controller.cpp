@@ -175,24 +175,6 @@ void Controller::AutoRun()
   delay(LIMITED_TIME);
 }
 
-void Controller::RunForward()
-{
-  //  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
-  //  Serial.print("left: ");
-  //  Serial.println(left);
-  //  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
-  //  Serial.print("right: ");
-  //  Serial.println(right);
-  //  if (!isstop)
-  //  {
-  //    delay(LIMITED_TIME);
-  //    Move(LEFT_SIDE);
-  //    delay(LIMITED_TIME);
-  //    isstop = true;
-  //  }
-  Move(FRONT_SIDE);
-}
-
 
 /*******************************************************************/
 /*******************************************************************/
