@@ -20,8 +20,7 @@ void Controller::Init()
   SPEED->SetRightReachLimitCallback(Controller::RightMoveDone);
   
   LOCATE->Init();
-  WHEEL->Init(8, 10, 1, 8);
-  
+  WHEEL->Init(8, 10, 1, 8);  
 
   pinMode(MOTOR_ENA, OUTPUT);
   pinMode(MOTOR_IN1, OUTPUT);
@@ -59,11 +58,10 @@ void Controller::SetSpeed(unsigned int lSpdRate, unsigned int rSpdRate)
 void Controller::Move(int direct, unsigned int opt)
 {
   DBG("Controller::Move(direct = %d, opt = %d)", direct, opt);
-  if(opt > 0)
-  {
-      s_leftMoveDone = false;
-      s_rightMoveDone = false;
-  }
+  
+  s_leftMoveDone = (opt == 0);
+  s_rightMoveDone = (opt == 0);
+        
   switch (direct)
   {
     case FRONT_SIDE:
@@ -165,24 +163,76 @@ void Controller::AutoRun()
 /*******************************************************************/
 /*******************************************************************/
 /*******************************************************************/
+void Controller::RunQuickTest()
+{
+  /*unsigned int front = LOCATE->GetRange(FRONT_SIDE, 3);
+  unsigned int left = LOCATE->GetRange(LEFT_SIDE, 3);
+  unsigned int right = LOCATE->GetRange(RIGHT_SIDE, 3);
+  Serial.print("front sensor: ");
+  Serial.print(front);
+  Serial.println(" cm");
+  Serial.print("left sensor: ");
+  Serial.print(left);
+  Serial.println(" cm");
+  Serial.print("right sensor: ");
+  Serial.print(right);
+  Serial.println(" cm");
+  Serial.println("");
+  Serial.println("");
+  Serial.println("");
+  delay(1000);
+
+  Move(FRONT_SIDE, 1);
+  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
+  Stop();
+  delay(3000);*/
+  Move(LEFT_SIDE, 20);
+  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
+  Stop();
+  delay(3000);
+  Move(RIGHT_SIDE, 20);
+  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
+  Stop();
+  delay(3000);
+  /*Move(BACK_SIDE, 1);
+  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
+  Stop();
+  delay(3000);*/
+  
+}
+
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 
 void Controller::AutoRun2()
 {
-  unsigned int front = LOCATE->GetRange(FRONT_SIDE);
-  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
-  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
-
+  unsigned int front = LOCATE->GetRange(FRONT_SIDE, 3);
+  unsigned int left = LOCATE->GetRange(LEFT_SIDE, 3);
+  unsigned int right = LOCATE->GetRange(RIGHT_SIDE, 3);
+  
   int direct[50];
   int opt[50];
   int count = 0;
 
   //Planning
-  if (front < 25) //Decision for new direction need to be made here
+
+  if(left == 0)
   {
-    if (front < 10) //stuck front, should back then choose new direction
+    direct[count] = RIGHT_SIDE;
+    opt[count++] = 10;
+  }
+  else if (right == 0)
+  {
+    direct[count] = LEFT_SIDE;
+    opt[count++] = 10;
+  }
+  else if (front < 25) //Decision for new direction need to be made here
+  {
+    if (front < 6) //stuck front, should back then choose new direction
     {
       direct[count] = BACK_SIDE;
-      opt[count++] = 10 - front;
+      opt[count++] = (int)(3 - front/2 - 0.1f);
     }
     else {} //This is perfect time to change direction
     
@@ -257,24 +307,24 @@ void Controller::AutoRun2()
         opt[count++] = 0;
       }
     }
-    else if (left <= 5 && right >= 5) //It run too close to the left, need move to right for awhile
+    else if (left <= 3 && right >= 3) //It run too close to the left, need move to right for awhile
     {
       direct[count] = RIGHT_SIDE;
-      opt[count++] = 20;
+      opt[count++] = 10;
   
       direct[count] = FRONT_SIDE;
-      opt[count++] = 6 - left;
+      opt[count++] = 1;
   
       direct[count] = LEFT_SIDE;
       opt[count++] = 10;
     }
-    else if (right <= 5 && left >= 5) //It run too close to the right, need move to left for awhile
+    else if (right <= 3 && left >= 3) //It run too close to the right, need move to left for awhile
     {
       direct[count] = LEFT_SIDE;
-      opt[count++] = 20;
+      opt[count++] = 10;
   
       direct[count] = FRONT_SIDE;
-      opt[count++] = 6 - left;
+      opt[count++] = 1;
   
       direct[count] = RIGHT_SIDE;
       opt[count++] = 10;

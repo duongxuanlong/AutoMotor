@@ -40,6 +40,19 @@ void Locating::Init()
   }
 }
 
+unsigned int Locating::GetRange(int direct, unsigned int check)
+{
+  unsigned int range = 0;
+  unsigned int count = check;
+  do
+  {
+    range = GetRange(direct);
+    count--;
+  } while (range == 0 && count > 0);
+
+  return range;
+}
+
 unsigned int Locating::GetRange(int direct)
 {
   DBG("Locating::GetRange(direct = %d)", direct);

@@ -28,6 +28,7 @@ class Controller
 
     void AutoRun();
     void AutoRun2();
+    void RunQuickTest();
 
     static void LeftMoveDone();
     static void RightMoveDone();

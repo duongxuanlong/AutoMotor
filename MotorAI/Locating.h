@@ -21,6 +21,7 @@ class Locating
   public:
     void Init();    
     unsigned int GetRange(int direct);
+    unsigned int GetRange(int direct, unsigned int check); //More accuracy but take more time
 
   //Singleton
   private:
