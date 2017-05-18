@@ -1,26 +1,50 @@
+
+
+//#include <Wire.h>
+
 #include "Controller.h"
+
+//---------------------------------------------------------------Load library for LCD-------------------------------------------------------------//
+#ifdef USE_LCD
+
+#include <Wire.h>
+//#include <LCD.h>
+//#include <LiquidCrystal_I2C.h>
+//#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal_I2C.h>
+
+//#define I2C_ADDR 0x3F //Define I2C Address where the PCF8574A is
+//#define BACKLIGHT_PIN 3
+//#define En_pin 2
+//#define Rw_pin 1
+//#define Rs_pin 0
+//#define D4_pin 4
+//#define D5_pin 5
+//#define D6_pin 6
+//#define D7_pin 7
+
+LiquidCrystal_I2C lcd(0x27,16,2);
+#endif
+//---------------------------------------------------------------End for LCD-------------------------------------------------------------//
 
 Controller* Controller::s_instance = NULL;
 
-volatile bool Controller::s_leftMoveDone = false;
-volatile bool Controller::s_rightMoveDone = false;
-    
-Controller::Controller():
-obsSolving(-1)
+Controller::Controller()
 { }
 
-Controller::~Controller() { }
+Controller::~Controller() 
+{ 
+  #ifdef USE_LCD
+//    if (lcd != NULL)
+//      delete lcd;
+  #endif
+}
 
 void Controller::Init()
 {
   DBG("Controller::Init()");
-  
   SPEED->Init(CHANGE);
-  SPEED->SetLeftReachLimitCallback(Controller::LeftMoveDone);
-  SPEED->SetRightReachLimitCallback(Controller::RightMoveDone);
-  
   LOCATE->Init();
-  WHEEL->Init(8, 10, 1, 8);  
 
   pinMode(MOTOR_ENA, OUTPUT);
   pinMode(MOTOR_IN1, OUTPUT);
@@ -35,42 +59,107 @@ void Controller::Init()
   digitalWrite(MOTOR_IN3, LOW);
   digitalWrite(MOTOR_IN4, LOW);
 
-  analogWrite(MOTOR_ENA, MOTOR_MAX_SPD_RATE);
-  analogWrite(MOTOR_ENB, MOTOR_MAX_SPD_RATE);
+//  analogWrite(MOTOR_ENA, MOTOR_MAX_SPD_RATE);
+//  analogWrite(MOTOR_ENB, MOTOR_MAX_SPD_RATE);
+
+  analogWrite(MOTOR_ENA, MOTOR_DEFAULT_SPD_RATE);
+  analogWrite(MOTOR_ENB, MOTOR_DEFAULT_SPD_RATE);
+  //  Move(FRONT_SIDE);
+
+  #ifdef USE_LCD
+    //lcd = new LiquidCrystal_I2C (I2C_ADDR, En_pin,Rw_pin,Rs_pin,D4_pin,D5_pin,D6_pin,D7_pin);
+//    lcd.begin (16,2);
+//    lcd.setBacklightPin(BACKLIGHT_PIN,POSITIVE);
+//    lcd.setBacklight(HIGH);
+
+      lcd.init();       //Khởi động màn hình. Bắt đầu cho phép Arduino sử dụng màn hình
+      lcd.backlight();
+  #endif
+
+  isMove = false;
+
+  IsStopping = false;
 }
 
-void Controller::LeftMoveDone()
+void Controller::TestSensorOutput()
 {
-  digitalWrite(MOTOR_IN1, LOW);
-  digitalWrite(MOTOR_IN2, LOW);
-  s_leftMoveDone = true;
+  //Test front sensor
+  int front = LOCATE->GetRange(FRONT_SIDE);
+  DBG("Front sensor : %u", front);
+  #ifdef USE_LCD
+    lcd.setCursor(0,0);
+    lcd.print("Front sensor");
+    lcd.setCursor(0,1);
+    lcd.print(front, DEC);
+  #endif
+  delay(500);
+  #ifdef USE_LCD
+    lcd.clear();
+  #endif
+
+  int left = LOCATE->GetRange(LEFT_SIDE);
+  DBG("Left sensor : %u", left);
+  #ifdef USE_LCD
+    lcd.setCursor(0,0);
+    lcd.print("Left sensor");
+    lcd.setCursor(0,1);
+    lcd.print(left, DEC);
+  #endif
+  delay(500);
+  #ifdef USE_LCD
+    lcd.clear();
+  #endif
+
+  int right = LOCATE->GetRange(RIGHT_SIDE);
+  DBG("Right sensor : %u", right);
+  #ifdef USE_LCD
+    lcd.setCursor(0,0);
+    lcd.print("Right sensor");
+    lcd.setCursor(0,1);
+    lcd.print(right, DEC);
+  #endif
+  delay(500);
+  #ifdef USE_LCD
+    lcd.clear();
+  #endif
 }
 
-void Controller::RightMoveDone()
+void Controller::TestWheel()
 {
+  //Left Wheel ENB
   digitalWrite(MOTOR_IN3, LOW);
-  digitalWrite(MOTOR_IN4, LOW);
-  s_rightMoveDone = true;
+  digitalWrite(MOTOR_IN4, HIGH);
+
+  //Right Wheel ENA
+  digitalWrite(MOTOR_IN1, LOW);
+  digitalWrite(MOTOR_IN2, HIGH);
 }
-    
+
 void Controller::SetSpeed(unsigned int lSpdRate, unsigned int rSpdRate)
 {
   analogWrite(MOTOR_ENA, lSpdRate);
   analogWrite(MOTOR_ENB, rSpdRate);
 }
 
-void Controller::Move(int direct, unsigned int opt)
+void Controller::StopSpeed()
 {
-  DBG("Controller::Move(direct = %d, opt = %d)", direct, opt);
-  
-  s_leftMoveDone = (opt == 0);
-  s_rightMoveDone = (opt == 0);
-        
+  IsStopping = true;
+  SetSpeed(0, 0);
+}
+
+void Controller::RecoverSpeed()
+{
+  IsStopping = false;
+  SetSpeed(MOTOR_DEFAULT_SPD_RATE, MOTOR_DEFAULT_SPD_RATE);
+}
+
+void Controller::Move(int direct, unsigned int angle)
+{
+  DBG("Controller::Move(direct = %d, angle = %d)", direct, angle);
   switch (direct)
   {
     case FRONT_SIDE:
       SPEED->Start();
-      SPEED->SetFrontLimit(opt);
       digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN2, HIGH);
       digitalWrite(MOTOR_IN3, LOW);
@@ -79,37 +168,38 @@ void Controller::Move(int direct, unsigned int opt)
 
     case LEFT_SIDE:
       SPEED->Stop();
-      SPEED->SetLeftLimit(opt);
-      SPEED->SetRightLimit(opt);
-      digitalWrite(MOTOR_IN1, HIGH);
-      digitalWrite(MOTOR_IN2, LOW);
-      digitalWrite(MOTOR_IN3, LOW);
-      digitalWrite(MOTOR_IN4, HIGH);
-      break;
-
-    case RIGHT_SIDE:
-      SPEED->Stop();
-      SPEED->SetLeftLimit(opt);
-      SPEED->SetRightLimit(opt);
+      //SPEED->SetAngle(angle);
       digitalWrite(MOTOR_IN1, LOW);
       digitalWrite(MOTOR_IN2, HIGH);
       digitalWrite(MOTOR_IN3, HIGH);
       digitalWrite(MOTOR_IN4, LOW);
+      
+//      digitalWrite(MOTOR_IN1, HIGH);
+//      digitalWrite(MOTOR_IN2, LOW);
+//      digitalWrite(MOTOR_IN3, LOW);
+//      digitalWrite(MOTOR_IN4, HIGH);
+      break;
+
+    case RIGHT_SIDE:
+      SPEED->Stop();
+      //SPEED->SetAngle(angle);
+      digitalWrite(MOTOR_IN1, HIGH);
+      digitalWrite(MOTOR_IN2, LOW);
+      digitalWrite(MOTOR_IN3, LOW);
+      digitalWrite(MOTOR_IN4, HIGH);
+      
+//      digitalWrite(MOTOR_IN1, LOW);
+//      digitalWrite(MOTOR_IN2, HIGH);
+//      digitalWrite(MOTOR_IN3, HIGH);
+//      digitalWrite(MOTOR_IN4, LOW);
       break;
 
     case BACK_SIDE:
       SPEED->Stop();
-      SPEED->SetBackLimit(opt);
       digitalWrite(MOTOR_IN1, HIGH);
       digitalWrite(MOTOR_IN2, LOW);
       digitalWrite(MOTOR_IN3, HIGH);
       digitalWrite(MOTOR_IN4, LOW);
-      break;
-    default:
-      Stop();
-      delay(opt);      
-      s_leftMoveDone = true;
-      s_rightMoveDone = true;
       break;
   }
 }
@@ -123,260 +213,534 @@ void Controller::Stop()
   digitalWrite(MOTOR_IN4, LOW);
 }
 
+void Controller::ShouldMoveFront()
+{
+//  int count = 0;
+//  unsigned int front = 0;
+//  while (front < LIMITED_SIDES && count < 3)
+//    front = LOCATE->GetRange(FRONT_SIDE);
+//  if (front >= LIMITED_SIDES)
+//  {
+//    RecoverSpeed();
+//    Move(FRONT_SIDE);
+//    delay(LIMITED_TIME + LIMITED_TIME + LIMITED_TIME);
+//  }
+
+  RecoverSpeed();
+  Move(FRONT_SIDE);
+  delay(LIMITED_TIME + LIMITED_TIME);
+}
+
 void Controller::AutoRun()
 {
-  unsigned int left = LOCATE->GetRange(LEFT_SIDE);
-  unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
-  unsigned int front = LOCATE->GetRange(FRONT_SIDE);
 
-  if (left == 0 && front == 0 && right == 0)
+  ////////////////////////////////////////////////////////////////////////Test Move/////////////////////////////////////////////////////////////////////////////////
+//    if (isMove)
+//      return;
+//    isMove = true;
+////  Move(FRONT_SIDE);
+//  Move(LEFT_SIDE);
+//  delay(250);
+//  //Stop();
+//  SetSpeed(0, 0);
+//  Move(RIGHT_SIDE);
+//  Move(BACK_SIDE);
+//  Move(LEFT_SIDE);
+//  delay(LIMITED_TIME);
+//  StopSpeed();
+//  ShouldMoveFront();
+//  Move(FRONT_SIDE);
+//  RecoverSpeed();
+//  delay(500);
+//  StopSpeed();
+//  return;
+  ////////////////////////////////////////////////////////////////////////End Test/////////////////////////////////////////////////////////////////////////////////
+
+   ////////////////////////////////////////////////////////////////////////Test Sensor/////////////////////////////////////////////////////////////////////////////////
+//     TestSensorOutput();
+//     return;
+  ////////////////////////////////////////////////////////////////////////End Test/////////////////////////////////////////////////////////////////////////////////
+
+  //delay(1000);
+  unsigned int front = 0;
+  unsigned int left = 0; 
+  unsigned int right = 0;
+
+  int count = 0;
+  while ((front < LIMITED_SIDES && left < LIMITED_SIDES && right < LIMITED_SIDES) && (count < 3))
   {
-    Stop();
-    return;
+    front = LOCATE->GetRange(FRONT_SIDE);
+    left = LOCATE->GetRange(LEFT_SIDE);
+    right = LOCATE->GetRange(RIGHT_SIDE);
+    count++;
   }
 
-  if (left >= MIN_SIDE_DISTANCE && right >= MIN_SIDE_DISTANCE)
+  /*******************************************************New idea**************************************************/
+
+  ////////////////////////////////////////////////////Handle 3 options//////////////////////////////////////////////
+  if ((front > MIN_SIDE_DISTANCE || front == 0) && (left > MIN_SIDE_DISTANCE || left == 0) && (right > MIN_SIDE_DISTANCE || right == 0))
   {
-    if (left < right)
+    //Handle both left and right
+    if ((left >= LIMITED_SIDES || left == 0) && (right >= LIMITED_SIDES || right == 0))
     {
-//      Move(BACK_SIDE);
-//      delay(LIMITED_TIME);
+      if ((left <= right && left != 0) || left == 0)
+      {
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        StopSpeed();
+        int subcount = 0;
+        while (subcount < 3)
+        {
+          front = LOCATE->GetRange(FRONT_SIDE);
+          subcount++;
+          //left = LOCATE->GetRange(LEFT_SIDE);
+        }
+
+        if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+        {
+          RecoverSpeed();
+          ShouldMoveFront();
+        }
+        else
+        {
+          RecoverSpeed();
+          Move(LEFT_SIDE);
+          delay(LIMITED_TIME_SMALL);
+          ShouldMoveFront();
+        }
+      }
+      else
+      {
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        StopSpeed();
+        int subcount = 0;
+        while (subcount < 3)
+        {
+          front = LOCATE->GetRange(FRONT_SIDE);
+          subcount++;
+        }
+
+        if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+        {
+          RecoverSpeed();
+          ShouldMoveFront();
+        }
+        else
+        {
+          RecoverSpeed();
+          Move(RIGHT_SIDE);
+          delay(LIMITED_TIME_SMALL);
+          ShouldMoveFront();
+        }
+      }
+      //ShouldMoveFront();
+      return;
+    }
+    //End handle both left and right
+
+    //Handle only left
+    if (left >= LIMITED_SIDES || left == 0)
+    {
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+      StopSpeed();
+      int subcount = 0;
+      while (subcount < 3)
+      {
+        front = LOCATE->GetRange(FRONT_SIDE);
+        subcount++;
+      }
+
+      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+      {
+        RecoverSpeed();
+        ShouldMoveFront();
+      }
+      else
+      {
+        RecoverSpeed();
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        ShouldMoveFront();
+      }
+      return;
+    }
+    //End handle only left
+
+    //Handle only right
+    if (right >= LIMITED_SIDES || right == 0)
+    {
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+      StopSpeed();
+      int subcount = 0;
+      while (subcount < 3)
+      {
+        front = LOCATE->GetRange(FRONT_SIDE);
+        subcount++;
+      }
+
+      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+      {
+        RecoverSpeed();
+        ShouldMoveFront();
+      }
+      else
+      {
+        RecoverSpeed();
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        ShouldMoveFront();
+      }
+    }
+    //End hanlde only right
+    
+    //Hanndle front
+    ShouldMoveFront();
+    //End handle front
+    return;
+  }
+  //////////////////////////////////////////////////////////////////////////////////////End handle 3 options///////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////////////Hanlde 2 options//////////////////////////////////////////////////////////////////////////////
+
+  //Hanlde option left, front
+  if ((front > MIN_SIDE_DISTANCE || front == 0) && (left > MIN_SIDE_DISTANCE || left == 0))
+  {
+    if (left >= LIMITED_SIDES || left == 0)
+    {
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+      StopSpeed();
+      int subcount = 0;
+      while (subcount < 3)
+      {
+        front = LOCATE->GetRange(FRONT_SIDE);
+        subcount++;
+      }
+      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+      {
+        RecoverSpeed();
+        ShouldMoveFront();
+      }
+      else
+      {
+        RecoverSpeed();
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        ShouldMoveFront();
+      }
+      return;
+    }
+
+//    Move(LEFT_SIDE);
+//    delay(LIMITED_TIME_SMALL);
+    ShouldMoveFront();
+    return;
+  }
+  //End Hanlde option left, front
+
+  //Handle option right, front
+  if ((front > MIN_SIDE_DISTANCE || front == 0) && (right > MIN_SIDE_DISTANCE || right == 0))
+  {
+    if (right >= LIMITED_SIDES || right == 0)
+    {
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+      StopSpeed();
+      int subcount = 0;
+      while (subcount < 3)
+      {
+        front = LOCATE->GetRange(FRONT_SIDE);
+        subcount++;
+      }
+
+      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+      {
+        RecoverSpeed();
+        ShouldMoveFront();
+      }
+      else
+      {
+        RecoverSpeed();
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        ShouldMoveFront();
+      }
+      return;
+    }
+
+      //Should I use this
+//    Move(RIGHT_SIDE);
+//    delay(LIMITED_TIME_SMALL);
+    ShouldMoveFront();
+    return;
+  }
+  //End Handle option right, front
+
+  //Hanlde option left, right
+  if ((left > MIN_SIDE_DISTANCE || left == 0) && (right > MIN_SIDE_DISTANCE || right == 0))
+  {
+    Move(BACK_SIDE);
+    delay(LIMITED_TIME);
+    if ((left >= LIMITED_SIDES || left == 0) && (right >= LIMITED_SIDES || right == 0))
+    {
+      if ((left <= right && left != 0) || left == 0)
+      {
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront();
+      }
+      else
+      {
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront();
+      }
+      return;
+    }
+
+    if (left >= LIMITED_SIDES || left == 0)
+    {
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront();
+        return;
+    }
+
+    if (right >= LIMITED_SIDES || right == 0)
+    {
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront();
+        return;
+    }
+
+    if (left >= right || left == 0)
+    {
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront();
+        return;
+    }
+    else
+    {
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront();
+        return;
+    }
+  }
+  //End hanlde option left, right
+  
+  ///////////////////////////////////////////////////////////////////////////////////End Handle 2 options////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////////////Handle only options///////////////////////////////////////////////////////////////////////////
+  //Handle option left
+  if (left > MIN_SIDE_DISTANCE || left == 0)
+  {
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+      StopSpeed();
+      int subcount = 0;
+      while (subcount < 3)
+      {
+        front = LOCATE->GetRange(FRONT_SIDE);
+        subcount++;
+      }
+      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+      {
+        RecoverSpeed();
+        ShouldMoveFront();
+      }
+      else
+      {
+        RecoverSpeed();
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        ShouldMoveFront();
+      }
+      return;
+  }
+  //End handle option left
+
+  //Handle option right
+  if (right > MIN_SIDE_DISTANCE || right == 0)
+  {
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+      StopSpeed();
+      int subcount = 0;
+      while (subcount < 3)
+      {
+        front = LOCATE->GetRange(FRONT_SIDE);
+        subcount++;
+      }
+    
+      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+      {
+        RecoverSpeed();
+        ShouldMoveFront();
+      }
+      else
+      {
+        RecoverSpeed();
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME_SMALL);
+        ShouldMoveFront();
+      }
+      return;
+   }
+  //End handle option right
+
+  //Handle option front
+  if (front > MIN_SIDE_DISTANCE || front == 0)
+  {
+    ShouldMoveFront();
+    return;
+  }
+  //End handle option front
+  //////////////////////////////////////////////////////////////////////////////End Hanlde only option///////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////////////////Handle No options///////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////End Hanlde No option///////////////////////////////////////////////////////////////////////////
+
+  ShouldMoveFront();
+  return;
+  /*******************************************************End New idea**************************************************/
+
+//  if (IsStopping)
+//    RecoverSpeed();
+  
+  //handle when being stuck
+  if (left < LIMITED_SIDES && right < LIMITED_SIDES && front < LIMITED_SIDES)
+  {
+    //SetSpeed(0, 0);
+    Move(BACK_SIDE);
+    delay(LIMITED_TIME);
+    if (left >= right)
+    {
+      //delay(LIMITED_TIME);
       Move(LEFT_SIDE);
       delay(LIMITED_TIME);
       Move(FRONT_SIDE);
+      delay(LIMITED_TIME / 2);
+      Move(RIGHT_SIDE);
       delay(LIMITED_TIME);
-      return;
     }
     else
     {
-//      Move(BACK_SIDE);
-//      delay(LIMITED_TIME);
+      //delay(LIMITED_TIME);
       Move(RIGHT_SIDE);
       delay(LIMITED_TIME);
       Move(FRONT_SIDE);
+      delay(LIMITED_TIME / 2);
+      Move(LEFT_SIDE);
       delay(LIMITED_TIME);
-      return;
     }
+    Move(FRONT_SIDE);
+    delay(LIMITED_TIME + LIMITED_TIME);
+    return;  
   }
 
-  if (left >= MIN_SIDE_DISTANCE)
+  //Handle near wall
+  if (left < MIN_SIDE_DISTANCE && front < MIN_SIDE_DISTANCE)
   {
-//    Move(BACK_SIDE);
-//    delay(LIMITED_TIME);
-    Move(LEFT_SIDE);
-    delay(LIMITED_TIME);
-    Move(FRONT_SIDE);
-    delay(LIMITED_TIME);
     return;
   }
-
-  if (right >= MIN_SIDE_DISTANCE)
+  if (left < MIN_SIDE_DISTANCE)
   {
-//    Move(BACK_SIDE);
-//    delay(LIMITED_TIME);
     Move(RIGHT_SIDE);
-    delay(LIMITED_TIME);
+    delay(LIMITED_TIME / 2);
     Move(FRONT_SIDE);
-    delay(LIMITED_TIME);
+    delay(LIMITED_TIME / 2);
     return;
   }
-
-  Move(FRONT_SIDE);
-  delay(LIMITED_TIME);
-}
-
-
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
-void Controller::RunQuickTest()
-{
-  /*unsigned int front = LOCATE->GetRange(FRONT_SIDE, 3);
-  unsigned int left = LOCATE->GetRange(LEFT_SIDE, 3);
-  unsigned int right = LOCATE->GetRange(RIGHT_SIDE, 3);
-  Serial.print("front sensor: ");
-  Serial.print(front);
-  Serial.println(" cm");
-  Serial.print("left sensor: ");
-  Serial.print(left);
-  Serial.println(" cm");
-  Serial.print("right sensor: ");
-  Serial.print(right);
-  Serial.println(" cm");
-  Serial.println("");
-  Serial.println("");
-  Serial.println("");
-  delay(1000);
-
-  Move(FRONT_SIDE, 1);
-  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
-  Stop();
-  delay(3000);*/
-  Move(LEFT_SIDE, 20);
-  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
-  Stop();
-  delay(3000);
-  Move(RIGHT_SIDE, 20);
-  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
-  Stop();
-  delay(3000);
-  /*Move(BACK_SIDE, 1);
-  while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
-  Stop();
-  delay(3000);*/
-  
-}
-
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
-
-void Controller::AutoRun2()
-{
-  unsigned int front = LOCATE->GetRange(FRONT_SIDE, 3);
-  unsigned int left = LOCATE->GetRange(LEFT_SIDE, 3);
-  unsigned int right = LOCATE->GetRange(RIGHT_SIDE, 3);
-  
-  int direct[50];
-  int opt[50];
-  int count = 0;
-
-  //Planning
-  if(front == 0) front = 100;
-  if(left == 0)
+  if (right < MIN_SIDE_DISTANCE)
   {
-    direct[count] = RIGHT_SIDE;
-    opt[count++] = 10;
-    
-    direct[count] = -1;
-    opt[count++] = 100;
+    Move(LEFT_SIDE);
+    delay(LIMITED_TIME / 2);
+    Move(FRONT_SIDE);
+    delay(LIMITED_TIME / 2);
+    return;
   }
-  else if (right == 0)
+  
+  //Nornmal running
+  if (left >= LIMITED_SIDES && right >= LIMITED_SIDES)
   {
-    direct[count] = LEFT_SIDE;
-    opt[count++] = 10;
-    
-    direct[count] = -1;
-    opt[count++] = 100;
-  }
-  else if (front < 60) //Decision for new direction need to be made here
-  {
-    if (front < 10) //stuck front, should back then choose new direction
+    if (left <= right)
     {
-      direct[count] = BACK_SIDE;
-      opt[count++] = (int)(front/10.0f + 0.5f);
-    }
-    
-    if (obsSolving > 0 && left >= 50 && right >= 50)
-    {
-      int testLeft = abs(obsSolving - 90);
-      int testRight = abs(obsSolving + 90);
-
-      direct[count] = testLeft < testRight? LEFT_SIDE : RIGHT_SIDE ;
-      obsSolving = testLeft < testRight? testLeft : testRight;
-      opt[count++] = 90;
-      
-    }
-    else if (left >= 50 && right > left)
-    {
-      direct[count] = LEFT_SIDE;
-      if(obsSolving == 0)
-      {
-        obsSolving = -90;
-      }
-      else
-      {
-        obsSolving -= 90;
-      }
-      opt[count++] = 90;
-    }
-    else if (right >= 50 && left > right)
-    {
-      direct[count] = RIGHT_SIDE;
-      if(obsSolving == 0)
-      {
-        obsSolving = -90;
-      }
-      else
-      {
-        obsSolving += 90;
-      }
-      opt[count++] = 90;
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME);
     }
     else
     {
-      direct[count] = left >= right? LEFT_SIDE : RIGHT_SIDE;
-      if(obsSolving != -1)
-      {
-        obsSolving += direct[count] == LEFT_SIDE? -90 : 90;
-      }
-      opt[count++] = 90;
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME);
     }
+    //StopSpeed();
+    ShouldMoveFront();
+    
+  }
+  else if (left >= LIMITED_SIDES)
+  {
+    Move(LEFT_SIDE);
+    delay(LIMITED_TIME);
+    //StopSpeed();
+    ShouldMoveFront();
+  }
+  else if (right >= LIMITED_SIDES)
+  {
+    Move(RIGHT_SIDE);
+    delay(LIMITED_TIME);
+    //StopSpeed();
+    ShouldMoveFront();
   }
   else
   {
-    if (obsSolving > 0 && (left >= 50 || right >= 50))
-    {
-      int testLeft = left >= 50? abs(obsSolving - 90) : 360;
-      int testRight = right >= 50? abs(obsSolving + 90) : 360;
-
-      if(testLeft < obsSolving && testLeft < testRight)
-      {
-        direct[count] = LEFT_SIDE;
-        obsSolving -= 90;
-        opt[count++] = 90;
-      }
-      else if(testRight < obsSolving && testRight < testLeft)
-      {
-        direct[count] = RIGHT_SIDE;
-        obsSolving += 90;
-        opt[count++] = 90;
-      }
-      else
-      {
-        direct[count] = FRONT_SIDE;
-        opt[count++] = 0;
-      }
-    }
-    else if (left <= 5 && right >= 5) //It run too close to the left, need move to right for awhile
-    {
-      direct[count] = RIGHT_SIDE;
-      opt[count++] = 10;
-  
-      direct[count] = FRONT_SIDE;
-      opt[count++] = 1;
-  
-      direct[count] = LEFT_SIDE;
-      opt[count++] = 10;
-    }
-    else if (right <= 5 && left >= 5) //It run too close to the right, need move to left for awhile
-    {
-      direct[count] = LEFT_SIDE;
-      opt[count++] = 10;
-  
-      direct[count] = FRONT_SIDE;
-      opt[count++] = 1;
-  
-      direct[count] = RIGHT_SIDE;
-      opt[count++] = 10;
-    }
-    esle if(left <= 5 && right <= 5)
-    {
-      direct[count] = BACK_SIDE;
-      opt[count++] = 1;
-    }
-    else
-    {
-      direct[count] = FRONT_SIDE;    
-      opt[count++] = (int)((front - 60)/10.0f);
-    }
+    Move(FRONT_SIDE);
+    delay(LIMITED_TIME + LIMITED_TIME + LIMITED_TIME);
   }
-
-   //Process plan
-  for (int i = 0; i < count; i++)
-  {
-    Move(direct[i], opt[i]);
-    while(!s_leftMoveDone || !s_rightMoveDone); //Wait task done
-    Stop();
-  }
+//  if (front >= MIN_FRONT_DISTANCE)
+//  {
+//    Move(FRONT_SIDE);
+//    //    delay(100);
+//  }
+//  else
+//  {
+//    unsigned int left = LOCATE->GetRange(LEFT_SIDE);
+//    unsigned int right = LOCATE->GetRange(RIGHT_SIDE);
+//    if (front <= LIMITED_SIDES && left <= LIMITED_SIDES && right <= LIMITED_SIDES)
+//    {
+//      Move(BACK_SIDE);
+//      return;
+//    }
+//    //Move(BACK_SIDE);
+//    //    Stop();
+//    if (front > left && front > right)
+//    {
+//      Move(FRONT_SIDE);
+//      return;
+//    }
+//
+//    if (left > right)
+//    {
+//      //      unsigned int current_time = millis();
+//      //      while (millis() - current_time < LIMITED_TIME)
+//      Move(LEFT_SIDE);
+//      delay(LIMITED_TIME);
+////      Move(FRONT_SIDE);
+//    }
+//    else
+//    {
+//      //      unsigned int current_time = millis();
+//      //      while (millis() - current_time < LIMITED_TIME)
+//      Move(RIGHT_SIDE);
+//      delay(LIMITED_TIME);
+////      Move(FRONT_SIDE);
+//    }
+//    Move(FRONT_SIDE);
+//  }
 }
+

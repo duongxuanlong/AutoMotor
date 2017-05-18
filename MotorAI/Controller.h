@@ -8,41 +8,37 @@
 
 class Controller
 {
-  private:
-    static volatile bool s_leftMoveDone;
-    static volatile bool s_rightMoveDone;
-
-  private:
-    //for auto2
-    int obsSolving; //0: solved, >0: solving
-    
   public:
     Controller();
     ~Controller();
-
+    
   public:
+    bool isMove;
     void Init();
     void Stop();
-    void Move(int direct, unsigned int opt = 0);
+    
+    void Move(int direct, unsigned int angle = 0);
     void SetSpeed(unsigned int lSpdRate, unsigned int rSpdRate);
-
+    void StopSpeed();
+    void RecoverSpeed();
+    
     void AutoRun();
-    void AutoRun2();
-    void RunQuickTest();
+    void ShouldMoveFront();
 
-    static void LeftMoveDone();
-    static void RightMoveDone();
-
-    //Singleton
+    void TestSensorOutput();
+    void TestWheel();
+    
+  //Singleton
   private:
     static Controller* s_instance;
-
+    bool IsStopping;
+    
   public:
     static Controller* GetInstance()
     {
-      if (!s_instance)
-        s_instance = new Controller();
-      return s_instance;
+        if (!s_instance)
+          s_instance = new Controller();
+        return s_instance;
     }
 };
 #define CONTROL Controller::GetInstance()

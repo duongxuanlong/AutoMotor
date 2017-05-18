@@ -8,13 +8,17 @@
 //#define DEBUG_MODE
 void DBG(String str, ...);
 
+#define USE_LCD //Enable LCD
+
 /******************** PIN USAGE ********************/
 //LED light
 #define LED 13
 
 //SRF04 Ultrasonic Ranger
-#define L_EYE_TRIG A5
-#define L_EYE_ECHO A4 
+//#define L_EYE_TRIG A5
+//#define L_EYE_ECHO A4 
+#define L_EYE_TRIG 3
+#define L_EYE_ECHO 11
 #define F_EYE_TRIG A3
 #define F_EYE_ECHO A2
 #define R_EYE_TRIG A1
@@ -35,6 +39,7 @@ void DBG(String str, ...);
 
 /******************** INGAME VALUE ********************/
 //Speed rate of Motor: 0 ~ 255
+#define MOTOR_DEFAULT_ZERO      0
 #define MOTOR_DEFAULT_SPD_RATE 127
 #define MOTOR_MAX_SPD_RATE 255//255
 #define MOTOR_RPM_TARGET 7
@@ -49,9 +54,8 @@ void DBG(String str, ...);
 //Timing
 #define WHEEL_UPDATE_INTERNAL 5000 //ms
 #define LOCATING_PING_INTERVAL 33 //ms
-#define LIMITED_TIME 150 //ms
-#define LIMITED_FORWARD_TIME 255 //ms
-#define LIMITED_MINOR_TIME 100 //ms
+#define LIMITED_TIME 200 //ms
+#define LIMITED_TIME_SMALL 200 //ms
 
 //Direction Enum
 #define FRONT_SIDE 0
@@ -65,9 +69,10 @@ void DBG(String str, ...);
 #define TOTAL_SENSORS 3
 
 //Define Distances
-#define MAX_DISTANCE 300
+#define MAX_DISTANCE 400
 #define MIN_FRONT_DISTANCE 200
-#define LIMITED_SIDES 10
-#define MIN_SIDE_DISTANCE 70
+#define LIMITED_SIDES 60
+#define LIMITED_SIDES_DOUBLE 70
+#define MIN_SIDE_DISTANCE 10
 #endif //__STDAFX_H__
 
