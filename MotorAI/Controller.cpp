@@ -293,7 +293,6 @@ void Controller::AutoRun()
         {
           front = LOCATE->GetRange(FRONT_SIDE);
           subcount++;
-          //left = LOCATE->GetRange(LEFT_SIDE);
         }
 
         if (front >= LIMITED_SIDES_DOUBLE || front == 0)
@@ -411,26 +410,36 @@ void Controller::AutoRun()
     if (left >= LIMITED_SIDES || left == 0)
     {
       Move(LEFT_SIDE);
+      delay(LIMITED_TIME);
+      ShouldMoveFront();
+      
+//      delay(LIMITED_TIME_SMALL);
+//      StopSpeed();
+//      int subcount = 0;
+//      while (subcount < 3)
+//      {
+//        front = LOCATE->GetRange(FRONT_SIDE);
+//        subcount++;
+//      }
+//      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+//      {
+//        RecoverSpeed();
+//        ShouldMoveFront();
+//      }
+//      else
+//      {
+//        RecoverSpeed();
+//        Move(LEFT_SIDE);
+//        delay(LIMITED_TIME_SMALL);
+//        ShouldMoveFront();
+//      }
+      return;
+    }
+    else
+    {
+      Move(LEFT_SIDE);
       delay(LIMITED_TIME_SMALL);
-      StopSpeed();
-      int subcount = 0;
-      while (subcount < 3)
-      {
-        front = LOCATE->GetRange(FRONT_SIDE);
-        subcount++;
-      }
-      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
-      {
-        RecoverSpeed();
-        ShouldMoveFront();
-      }
-      else
-      {
-        RecoverSpeed();
-        Move(LEFT_SIDE);
-        delay(LIMITED_TIME_SMALL);
-        ShouldMoveFront();
-      }
+      ShouldMoveFront();
       return;
     }
 
@@ -447,27 +456,37 @@ void Controller::AutoRun()
     if (right >= LIMITED_SIDES || right == 0)
     {
       Move(RIGHT_SIDE);
+      delay(LIMITED_TIME);
+      ShouldMoveFront();
+      
+//      delay(LIMITED_TIME_SMALL);
+//      StopSpeed();
+//      int subcount = 0;
+//      while (subcount < 3)
+//      {
+//        front = LOCATE->GetRange(FRONT_SIDE);
+//        subcount++;
+//      }
+//
+//      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
+//      {
+//        RecoverSpeed();
+//        ShouldMoveFront();
+//      }
+//      else
+//      {
+//        RecoverSpeed();
+//        Move(RIGHT_SIDE);
+//        delay(LIMITED_TIME_SMALL);
+//        ShouldMoveFront();
+//      }
+      return;
+    }
+    else
+    {
+      Move(RIGHT_SIDE);
       delay(LIMITED_TIME_SMALL);
-      StopSpeed();
-      int subcount = 0;
-      while (subcount < 3)
-      {
-        front = LOCATE->GetRange(FRONT_SIDE);
-        subcount++;
-      }
-
-      if (front >= LIMITED_SIDES_DOUBLE || front == 0)
-      {
-        RecoverSpeed();
-        ShouldMoveFront();
-      }
-      else
-      {
-        RecoverSpeed();
-        Move(RIGHT_SIDE);
-        delay(LIMITED_TIME_SMALL);
-        ShouldMoveFront();
-      }
+      ShouldMoveFront();
       return;
     }
 
@@ -517,7 +536,7 @@ void Controller::AutoRun()
         return;
     }
 
-    if (left >= right || left == 0)
+    if (left >= right)
     {
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
