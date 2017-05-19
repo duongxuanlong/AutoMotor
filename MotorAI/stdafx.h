@@ -8,11 +8,11 @@
 //#define DEBUG_MODE
 void DBG(String str, ...);
 
-#define USE_LCD //Enable LCD
+//#define USE_LCD //Enable LCD
 
 /******************** PIN USAGE ********************/
 //LED light
-#define LED 13
+//#define LED 13
 
 //SRF04 Ultrasonic Ranger
 //#define L_EYE_TRIG A5
@@ -41,6 +41,7 @@ void DBG(String str, ...);
 //Speed rate of Motor: 0 ~ 255
 #define MOTOR_DEFAULT_ZERO      0
 #define MOTOR_DEFAULT_SPD_RATE 127
+#define MOTOR_DEFAULT_SPD_RATE_LEFT 160
 #define MOTOR_MAX_SPD_RATE 255//255
 #define MOTOR_RPM_TARGET 7
 
@@ -73,6 +74,6 @@ void DBG(String str, ...);
 #define MIN_FRONT_DISTANCE 200
 #define LIMITED_SIDES 60
 #define LIMITED_SIDES_DOUBLE 70
-#define MIN_SIDE_DISTANCE 10
+#define MIN_SIDE_DISTANCE 15
 #endif //__STDAFX_H__
 
