@@ -56,7 +56,7 @@ void DBG(String str, ...);
 #define WHEEL_UPDATE_INTERNAL 5000 //ms
 #define LOCATING_PING_INTERVAL 33 //ms
 #define LIMITED_TIME 200 //ms
-#define LIMITED_TIME_SMALL 100 //ms
+#define LIMITED_TIME_SMALL 50 //ms
 
 //Direction Enum
 #define FRONT_SIDE 0

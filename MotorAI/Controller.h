@@ -23,7 +23,7 @@ class Controller
     void RecoverSpeed();
     
     void AutoRun();
-    void ShouldMoveFront();
+    void ShouldMoveFront(int delaytime = LIMITED_TIME);
 
     void TestSensorOutput();
     void TestWheel();
