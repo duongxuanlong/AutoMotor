@@ -365,7 +365,7 @@ void Controller::AutoRun()
       
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront();
       }
       else
       {
@@ -381,7 +381,7 @@ void Controller::AutoRun()
         
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront();
       }
       //ShouldMoveFront();
       return;
@@ -402,7 +402,7 @@ void Controller::AutoRun()
       
       Move(LEFT_SIDE);
       delay(LIMITED_TIME);
-      ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront();
       return;
     }
     //End handle only left
@@ -421,7 +421,7 @@ void Controller::AutoRun()
       
       Move(RIGHT_SIDE);
       delay(LIMITED_TIME);
-      ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront();
       return;
     }
     //End hanlde only right
@@ -465,7 +465,7 @@ void Controller::AutoRun()
       #endif
       Move(LEFT_SIDE);
       delay(LIMITED_TIME);
-      ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront();
       return;
     }
     else
@@ -484,7 +484,7 @@ void Controller::AutoRun()
       delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       ShouldMoveFront(LIMITED_TIME_SMALL);
       Move(RIGHT_SIDE);
-      delay(LIMITED_TIME_SMALL);
+      delay(35);
       ShouldMoveFront(LIMITED_TIME_SMALL);
       return;
     }
@@ -514,7 +514,7 @@ void Controller::AutoRun()
       #endif
       Move(RIGHT_SIDE);
       delay(LIMITED_TIME);
-      ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront();
       return;
     }
     else
@@ -573,7 +573,8 @@ void Controller::AutoRun()
       #endif
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront();
+        return;
       }
       else
       {
@@ -587,7 +588,7 @@ void Controller::AutoRun()
       #endif
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront();
       }
       return;
     }
@@ -604,7 +605,7 @@ void Controller::AutoRun()
       #endif
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront();
         return;
     }
 
@@ -661,19 +662,20 @@ void Controller::AutoRun()
 
   /////////////////////////////////////////////////////////////////////////////////Handle only options///////////////////////////////////////////////////////////////////////////
   //Handle option left
-  if (left > MIN_SIDE_DISTANCE)
+  if (left > MIN_SIDE_DISTANCE || left == 0)
   {
     if (left >= LIMITED_SIDES || left == 0)
     {
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront();
         return;
     }
     else
     {
       Move(BACK_SIDE);
-      delay(LIMITED_TIME);
+//      delay(LIMITED_TIME);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       Move(LEFT_SIDE);
       delay(LIMITED_TIME);
       ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
@@ -702,7 +704,7 @@ void Controller::AutoRun()
   //End handle option left
 
   //Handle option right
-  if (right > MIN_SIDE_DISTANCE)
+  if (right > MIN_SIDE_DISTANCE || right == 0)
   {
     if (right >= LIMITED_SIDES || right == 0)
     {
@@ -714,7 +716,8 @@ void Controller::AutoRun()
     else
     {
       Move(BACK_SIDE);
-      delay(LIMITED_TIME);
+//      delay(LIMITED_TIME);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       Move(RIGHT_SIDE);
       delay(LIMITED_TIME);
       ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
@@ -753,7 +756,7 @@ void Controller::AutoRun()
         delay(1000);
         lcd.clear();
       #endif
-    ShouldMoveFront();
+    ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
     return;
   }
   //End handle option front
