@@ -484,7 +484,7 @@ void Controller::AutoRun()
       delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       ShouldMoveFront(LIMITED_TIME_SMALL);
       Move(RIGHT_SIDE);
-      delay(35);
+      delay(LIMITED_TIME_SMALL / 2);
       ShouldMoveFront(LIMITED_TIME_SMALL);
       return;
     }
@@ -692,11 +692,11 @@ void Controller::AutoRun()
       {
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       }
       else
       {
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       }
     }
     return;
@@ -710,7 +710,7 @@ void Controller::AutoRun()
     {
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
         return;
     }
     else
@@ -734,11 +734,11 @@ void Controller::AutoRun()
       {
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       }
       else
       {
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       }
       return;
     }
