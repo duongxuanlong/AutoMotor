@@ -73,6 +73,7 @@ void DBG(String str, ...);
 #define MAX_DISTANCE 400
 #define MIN_FRONT_DISTANCE 200
 #define LIMITED_SIDES 70
+#define LIMITED_SIDES_FRONT 140
 #define LIMITED_SIDES_DOUBLE 70
 #define MIN_SIDE_DISTANCE 15
 #endif //__STDAFX_H__

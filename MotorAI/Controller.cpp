@@ -248,34 +248,6 @@ void Controller::AutoRun()
     lcd.clear();
   #endif
 //    isMove = true;
-//  Move(LEFT_SIDE);
-//  delay(50 + 50);
-//  Move(FRONT_SIDE);
-//  delay(50);
-//  Move(RIGHT_SIDE);
-//  delay(50);
-//  Move(FRONT_SIDE);
-//  delay(50);
-//  Move(RIGHT_SIDE);
-//  delay(50);
-//  Move(FRONT_SIDE);
-//  delay(50);
-//  Move(LEFT_SIDE);
-//  delay(250);
-//  //Stop();
-//  SetSpeed(0, 0);
-//  Move(RIGHT_SIDE);
-//  Move(BACK_SIDE);
-//  Move(LEFT_SIDE);
-//  delay(LIMITED_TIME);
-//  StopSpeed();
-  //ShouldMoveFront();
-//  Move(FRONT_SIDE);
-//  delay(1000);
-//  SetSpeed(0, 0);
-//  Move(FRONT_SIDE);
-//  RecoverSpeed();
-//  delay(500);
 //  StopSpeed();
 //  if (isMove)
 //      return;
@@ -292,7 +264,6 @@ void Controller::AutoRun()
   unsigned int right = 0;
 
   int count = 0;
-//  while ((front < LIMITED_SIDES && left < LIMITED_SIDES && right < LIMITED_SIDES) && (count < 3))
   while (count < 3)
   {
     front = LOCATE->GetRange(FRONT_SIDE);
@@ -301,87 +272,32 @@ void Controller::AutoRun()
     count++;
   }
 
-  #ifdef USE_LCD
-    lcd.setCursor(0,0);
-    lcd.print("Front distance ");
-    lcd.setCursor(0,1);
-    lcd.print(front, DEC);
-    delay(1000);
-    lcd.clear();
-
-    lcd.setCursor(0,0);
-    lcd.print("Left distance ");
-    lcd.setCursor(0,1);
-    lcd.print(left, DEC);
-    delay(1000);
-    lcd.clear();
-
-    lcd.setCursor(0,0);
-    lcd.print("right distance ");
-    lcd.setCursor(0,1);
-    lcd.print(right, DEC);
-    delay(1000);
-    lcd.clear();
-
-//    return;
-  #endif
-
   /*******************************************************New idea**************************************************/
 
   ////////////////////////////////////////////////////Handle 3 options//////////////////////////////////////////////
   if ((front > MIN_SIDE_DISTANCE || front == 0) && (left > MIN_SIDE_DISTANCE || left == 0) && (right > MIN_SIDE_DISTANCE || right == 0))
   {
-    #ifdef USE_LCD
-      lcd.setCursor(0, 0);
-      lcd.print("Front, Left, Right");
-      lcd.setCursor(0, 1);
-      lcd.print("MIN_SIDE_DISTANCE");
-      delay(1000);
-      lcd.clear();
-    #endif
+    //Front is the priority
+    if (front >= LIMITED_SIDES_FRONT || front == 0)
+    {
+      ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+      return;
+    }
     
     //Handle both left and right
     if ((left >= LIMITED_SIDES || left == 0) && (right >= LIMITED_SIDES || right == 0))
-    {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("Left, Right");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES");
-        delay(1000);
-        lcd.clear();
-      #endif
-      
+    { 
       if ((left <= right && left != 0) || left == 0)
       {
-        #ifdef USE_LCD
-          lcd.setCursor(0, 0);
-          lcd.print("Left, Right");
-          lcd.setCursor(0, 1);
-          lcd.print("left <= right || 0");
-          delay(1000);
-          lcd.clear();
-        #endif
-      
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront();
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       }
       else
       {
-        
-       #ifdef USE_LCD
-          lcd.setCursor(0, 0);
-          lcd.print("Left, Right");
-          lcd.setCursor(0, 1);
-          lcd.print("left > right || 0");
-          delay(1000);
-          lcd.clear();
-        #endif
-        
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront();
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       }
       //ShouldMoveFront();
       return;
@@ -391,18 +307,9 @@ void Controller::AutoRun()
     //Handle only left
     if (left >= LIMITED_SIDES || left == 0)
     {
-       #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("Left");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
-      
       Move(LEFT_SIDE);
       delay(LIMITED_TIME);
-      ShouldMoveFront();
+      ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       return;
     }
     //End handle only left
@@ -410,31 +317,15 @@ void Controller::AutoRun()
     //Handle only right
     if (right >= LIMITED_SIDES || right == 0)
     {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("right");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
-      
       Move(RIGHT_SIDE);
       delay(LIMITED_TIME);
-      ShouldMoveFront();
+      ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       return;
     }
     //End hanlde only right
     
     //Hanndle front
-    #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("Front");
-        delay(1000);
-        lcd.clear();
-      #endif
-      
-    ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+    ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
     //End handle front
     return;
   }
@@ -445,39 +336,27 @@ void Controller::AutoRun()
   //Hanlde option left, front
   if ((front > MIN_SIDE_DISTANCE || front == 0) && (left > MIN_SIDE_DISTANCE || left == 0))
   {
-    #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("front, left");
-        lcd.setCursor(0, 1);
-        lcd.print("MIN || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
+    //Front is the priority
+    if (front >= LIMITED_SIDES_FRONT || front == 0)
+    {
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront(LIMITED_TIME_SMALL);
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME_SMALL / 2);
+      ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+      return;
+    }
+    
     if (left >= LIMITED_SIDES || left == 0)
     {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
       Move(LEFT_SIDE);
       delay(LIMITED_TIME);
-      ShouldMoveFront();
+      ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       return;
     }
     else
     {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left");
-        lcd.setCursor(0, 1);
-        lcd.print(" < LIMITED_SIDES");
-        delay(1000);
-        lcd.clear();
-      #endif
 //      Move(LEFT_SIDE);
 //      delay(LIMITED_TIME_SMALL);
       Move(LEFT_SIDE);
@@ -494,44 +373,32 @@ void Controller::AutoRun()
   //Handle option right, front
   if ((front > MIN_SIDE_DISTANCE || front == 0) && (right > MIN_SIDE_DISTANCE || right == 0))
   {
-    #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("front, right");
-        lcd.setCursor(0, 1);
-        lcd.print("MIN || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
-    if (right >= LIMITED_SIDES || right == 0)
+    //Front is the priority
+    if (front >= LIMITED_SIDES_FRONT || front == 0)
     {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("right");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
-      Move(RIGHT_SIDE);
-      delay(LIMITED_TIME);
-      ShouldMoveFront();
-      return;
-    }
-    else
-    {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("right");
-        lcd.setCursor(0, 1);
-        lcd.print("< LIMITED_SIDES");
-        delay(1000);
-        lcd.clear();
-      #endif
       Move(RIGHT_SIDE);
       delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       ShouldMoveFront(LIMITED_TIME_SMALL);
       Move(LEFT_SIDE);
-      delay(LIMITED_TIME_SMALL);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL / 2);
+      ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+      return;
+    }
+    
+    if (right >= LIMITED_SIDES || right == 0)
+    {
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME);
+      ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+      return;
+    }
+    else
+    {
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront(LIMITED_TIME_SMALL);
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL / 2);
       ShouldMoveFront(LIMITED_TIME_SMALL);
       return;
     }
@@ -541,118 +408,54 @@ void Controller::AutoRun()
   //Hanlde option left, right
   if ((left > MIN_SIDE_DISTANCE || left == 0) && (right > MIN_SIDE_DISTANCE || right == 0))
   {
-    #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left, right");
-        lcd.setCursor(0, 1);
-        lcd.print("MIN || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
     Move(BACK_SIDE);
     delay(LIMITED_TIME);
     if ((left >= LIMITED_SIDES || left == 0) && (right >= LIMITED_SIDES || right == 0))
     {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left, right");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
       if ((left <= right && left != 0) || left == 0)
       {
-        #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left, right");
-        lcd.setCursor(0, 1);
-        lcd.print("left < right || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront();
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
         return;
       }
       else
       {
-        #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left, right");
-        lcd.setCursor(0, 1);
-        lcd.print("right < left || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront();
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
       }
       return;
     }
 
     if (left >= LIMITED_SIDES || left == 0)
     {
-       #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront();
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
         return;
     }
 
     if (right >= LIMITED_SIDES || right == 0)
     {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("right");
-        lcd.setCursor(0, 1);
-        lcd.print("LIMITED_SIDES || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
         return;
     }
 
     if (left >= right)
     {
-      #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left, right");
-        lcd.setCursor(0, 1);
-        lcd.print("left >= right");
-        delay(1000);
-        lcd.clear();
-      #endif
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
         return;
     }
     else
     {
-       #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("left, right");
-        lcd.setCursor(0, 1);
-        lcd.print("left < right");
-        delay(1000);
-        lcd.clear();
-      #endif
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
         return;
     }
   }
@@ -668,7 +471,7 @@ void Controller::AutoRun()
     {
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront();
+        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
         return;
     }
     else
@@ -692,11 +495,11 @@ void Controller::AutoRun()
       {
         Move(RIGHT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       }
       else
       {
-        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       }
     }
     return;
@@ -734,11 +537,11 @@ void Controller::AutoRun()
       {
         Move(LEFT_SIDE);
         delay(LIMITED_TIME);
-        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       }
       else
       {
-        ShouldMoveFront(/*LIMITED_TIME_SMALL + LIMITED_TIME_SMALL*/);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
       }
       return;
     }
@@ -748,14 +551,6 @@ void Controller::AutoRun()
   //Handle option front
   if (front > MIN_SIDE_DISTANCE || front == 0)
   {
-    #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("front");
-        lcd.setCursor(0, 1);
-        lcd.print("MIN || 0");
-        delay(1000);
-        lcd.clear();
-      #endif
     ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
     return;
   }
@@ -764,19 +559,6 @@ void Controller::AutoRun()
 
   /////////////////////////////////////////////////////////////////////////////////Handle No options///////////////////////////////////////////////////////////////////////////
   ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
-  #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("THE END");
-        delay(1000);
-        lcd.clear();
-      #endif
-  return;
-  #ifdef USE_LCD
-        lcd.setCursor(0, 0);
-        lcd.print("NOT THE END");
-        delay(1000);
-        lcd.clear();
-      #endif
   //////////////////////////////////////////////////////////////////////////////End Hanlde No option///////////////////////////////////////////////////////////////////////////
 
   
