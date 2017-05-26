@@ -41,7 +41,8 @@ void DBG(String str, ...);
 //Speed rate of Motor: 0 ~ 255
 #define MOTOR_DEFAULT_ZERO      0
 #define MOTOR_DEFAULT_SPD_RATE 127
-#define MOTOR_DEFAULT_SPD_RATE_LEFT 160
+#define MOTOR_DEFAULT_SPD_RATE_LEFT 142
+//#define MOTOR_DEFAULT_SPD_RATE_LEFT 160
 #define MOTOR_MAX_SPD_RATE 255//255
 #define MOTOR_RPM_TARGET 7
 
@@ -75,6 +76,6 @@ void DBG(String str, ...);
 #define LIMITED_SIDES 70
 #define LIMITED_SIDES_FRONT 140
 #define LIMITED_SIDES_DOUBLE 70
-#define MIN_SIDE_DISTANCE 15
+#define MIN_SIDE_DISTANCE 10
 #endif //__STDAFX_H__
 

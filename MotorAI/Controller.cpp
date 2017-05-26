@@ -251,6 +251,9 @@ void Controller::AutoRun()
 //  StopSpeed();
 //  if (isMove)
 //      return;
+
+//ShouldMoveFront();
+//return;
   ////////////////////////////////////////////////////////////////////////End Test/////////////////////////////////////////////////////////////////////////////////
 
    ////////////////////////////////////////////////////////////////////////Test Sensor/////////////////////////////////////////////////////////////////////////////////
@@ -259,6 +262,7 @@ void Controller::AutoRun()
   ////////////////////////////////////////////////////////////////////////End Test/////////////////////////////////////////////////////////////////////////////////
 
   //delay(1000);
+//  StopSpeed();
   unsigned int front = 0;
   unsigned int left = 0; 
   unsigned int right = 0;
@@ -271,9 +275,112 @@ void Controller::AutoRun()
     right = LOCATE->GetRange(RIGHT_SIDE);
     count++;
   }
-
+//  RecoverSpeed();
   /*******************************************************New idea**************************************************/
 
+  /////////////////////////////////////////This is the idea with front priority///////////////////////////////////////
+  if (front == 0 || (left >= LIMITED_SIDES && front > left) || (right >= LIMITED_SIDES && front > right) || (front >= (MIN_SIDE_DISTANCE + MIN_SIDE_DISTANCE) && left < LIMITED_SIDES && right < LIMITED_SIDES))
+  {
+    if (left > MIN_SIDE_DISTANCE && right < MIN_SIDE_DISTANCE)
+    {
+//      Move(BACK_SIDE);
+//      delay(LIMITED_TIME_SMALL);
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront(LIMITED_TIME_SMALL);
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+    }
+
+    if (left < MIN_SIDE_DISTANCE && right > MIN_SIDE_DISTANCE)
+    {
+//      Move(BACK_SIDE);
+//      delay(LIMITED_TIME_SMALL);
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      ShouldMoveFront(LIMITED_TIME_SMALL);
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME_SMALL);
+    }
+    ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+    return;
+  }
+
+  if (front <= MIN_SIDE_DISTANCE)
+  {
+    Move(BACK_SIDE);
+    delay(LIMITED_TIME);
+  }
+
+  if ((left >= LIMITED_SIDES || left == 0) && (right >= LIMITED_SIDES || right == 0))
+    { 
+      if ((left <= right && left != 0) || left == 0)
+      {
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      }
+      else
+      {
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      }
+      return;
+    //End handle both left and right
+
+    //Handle only left
+    if (left >= LIMITED_SIDES || left == 0)
+    {
+      Move(LEFT_SIDE);
+      delay(LIMITED_TIME);
+      ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      return;
+    }
+    //End handle only left
+
+    //Handle only right
+    if (right >= LIMITED_SIDES || right == 0)
+    {
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME);
+      ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      return;
+    }
+   }
+
+    if (left >= LIMITED_SIDES || left == 0)
+    {
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        return;
+    }
+
+    if (right >= LIMITED_SIDES || right == 0)
+    {
+      Move(RIGHT_SIDE);
+      delay(LIMITED_TIME);
+      ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+      return;
+    }
+
+    if (left >= right)
+    {
+        Move(LEFT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        return;
+    }
+    else
+    {
+        Move(RIGHT_SIDE);
+        delay(LIMITED_TIME);
+        ShouldMoveFront(LIMITED_TIME_SMALL + LIMITED_TIME_SMALL);
+        return;
+    }
+  ////////////////////////////////////////End This is the idea with front priority///////////////////////////////////
+  
   ////////////////////////////////////////////////////Handle 3 options//////////////////////////////////////////////
   if ((front > MIN_SIDE_DISTANCE || front == 0) && (left > MIN_SIDE_DISTANCE || left == 0) && (right > MIN_SIDE_DISTANCE || right == 0))
   {
